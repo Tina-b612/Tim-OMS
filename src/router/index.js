@@ -89,20 +89,6 @@ export const constantRoutes = [
 // 动态路由，基于用户权限动态去加载
 export const dynamicRoutes = [
   {
-    path: '/purchase',
-    component: Layout,
-    hidden: true,
-    permissions: ['purchase:user:list'], //权限
-    children: [
-      {
-        path: '/index',
-        component: () => import('@/views/purchase/index'),
-        name: 'AuthRole',
-        meta: { title: '采购单列表', activeMenu: '/system/user' },
-      },
-    ],
-  },
-  {
     path: '/system/user-auth',
     component: Layout,
     hidden: true,
