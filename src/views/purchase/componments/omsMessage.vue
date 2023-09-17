@@ -17,7 +17,7 @@
         <div class="clearfix message-card-footer">
           <el-button type="primary" size="small" plain>询报价单</el-button>
           <span style="margin: 0 8px">213141434</span>,
-          <span>林广宇</span>
+          <span>林光裕</span>
         </div>
       </el-card>
     </div>
@@ -31,7 +31,11 @@ const message = '123消息'
 
 <style lang="scss">
 /* style */
+.message-containar {
+  height: 100%;
+}
 .omsMessage {
+  overflow: scroll;
   // padding: 20px;
   .omsMessage-header {
     padding: 10px;

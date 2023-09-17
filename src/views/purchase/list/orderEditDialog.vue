@@ -149,8 +149,8 @@
 </template>
 
 <script setup>
-import { getOrder, addOrder,updateOrder,  searchBrand, searchModel } from "@/api/purchase/order";
-import { onMounted, reactive } from "vue";
+import { getOrder, addOrder,updateOrder,  searchBrand, searchModel } from "@/api/purchase/list";
+import { reactive } from "vue";
 import { getToken } from "@/utils/auth";
 const headers = ref({ Authorization: "Bearer " + getToken() });
 const props = defineProps({

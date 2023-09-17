@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询订单管理列表
 export function listOrder(query) {
   return request({
-    url: '/purchase/order/list',
+    url: '/purchase/list',
     method: 'get',
     params: query,
   })
@@ -12,7 +12,7 @@ export function listOrder(query) {
 // 查询订单管理详细
 export function getOrder(purchaseId) {
   return request({
-    url: '/purchase/order/' + purchaseId,
+    url: '/purchase/' + purchaseId,
     method: 'get',
   })
 }
@@ -20,7 +20,7 @@ export function getOrder(purchaseId) {
 // 新增订单管理
 export function addOrder(data) {
   return request({
-    url: '/purchase/order',
+    url: '/purchase',
     method: 'post',
     data: data,
   })
@@ -29,7 +29,7 @@ export function addOrder(data) {
 // 修改订单管理
 export function updateOrder(data) {
   return request({
-    url: '/purchase/order',
+    url: '/purchase',
     method: 'put',
     data: data,
   })
@@ -38,7 +38,7 @@ export function updateOrder(data) {
 // 删除订单管理
 export function delOrder(purchaseId) {
   return request({
-    url: '/purchase/order/' + purchaseId,
+    url: '/purchase/' + purchaseId,
     method: 'delete',
   })
 }
@@ -55,7 +55,7 @@ export function SearchUser(query) {
 // 查询品牌
 export function searchBrand(query) {
   return request({
-    url: '/purchase/brand/listForUser',
+    url: '/brand/listForUser',
     method: 'get',
     params: query,
   })
@@ -64,7 +64,25 @@ export function searchBrand(query) {
 // 查询型号
 export function searchModel(query) {
   return request({
-    url: '/purchase/model/listForUser',
+    url: '/model/listForUser',
+    method: 'get',
+    params: query,
+  })
+}
+// 查询供应商  /supplier/listForUser
+
+export function searchSupplier(query) {
+  return request({
+    url: '/supplier/listForUser',
+    method: 'get',
+    params: query,
+  })
+}
+
+// /purchase/count
+export function getPurchaseCount(query) {
+  return request({
+    url: '/purchase/count',
     method: 'get',
     params: query,
   })
