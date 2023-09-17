@@ -185,14 +185,12 @@ import omsMessage from '../componments/omsMessage.vue'
 const activeName = ref('0')
 
 const handleTabClick = (tab) => {
-  console.log(tab.paneName)
   queryParams.value.orderState = tab.paneName
   getList()
 }
 
 const { proxy } = getCurrentInstance()
 const { order_state } = proxy.useDict('order_state')
-console.log(order_state)
 
 const route = useRoute()
 watch(route, () => {
@@ -277,12 +275,8 @@ function getStateNumber() {
       return target
     }, {})
     stateNumber.value = res.data
-    // for (let index = 0; index < res.data.length; index++) {
-    //   const item = res.data[index]
-    // }
   })
 }
-getStateNumber()
 
 /** 查询订单功能列表 */
 function getList() {
@@ -297,6 +291,8 @@ function getList() {
       orderList.value = response.rows
       total.value = response.total
       loading.value = false
+
+      getStateNumber()
     })
     .catch(() => {
       loading.value = false

@@ -1,14 +1,17 @@
 <template>
   <div class="common-layout purchase-order-detail">
     <el-container>
-      <el-main>
+      <el-main class="purchase-order-main">
         <div class="purchase-order-detail-header" v-if="form.purchaseId">
           <div class="desc">
             <dict-tag style="display: inline" :options="order_state" :value="form.orderState" />
             <span>采购单号: {{ form.purchaseSn }}</span>
             <span>销售负责人: {{ form.salesUserName }}</span>
             <span>采购负责人: {{ form.purchaseUserName || '未分配' }}</span>
-            <span>当前状态等待时长: {{ timingTimeStr }}</span>
+            <span v-if="orderState <= 5">
+              当前状态等待时长:
+              <el-link type="warning">{{ timingTimeStr }}</el-link>
+            </span>
           </div>
           <div class="right">
             <div>
@@ -19,9 +22,13 @@
             <ChatDotSquare style="font-size: 30px; width: 1em; height: 1em; margin-left: 10px; color: #e6a23c" />
           </div>
         </div>
-        <div>{{ curRoles }}</div>
+        <!-- <div>{{ curRoles }}</div> -->
+        <el-descriptions style="padding-left: 100px" class="mt20" size="large" v-if="[5, 6, 7].includes(orderState)">
+          <el-descriptions-item label="品牌名称">{{ form.brandName }}</el-descriptions-item>
+          <el-descriptions-item label="订单描述">{{ form.orderDescription }}</el-descriptions-item>
+        </el-descriptions>
         <el-form class="mt20" ref="orderRef" :model="form" :rules="rules" label-width="80px" :disabled="false">
-          <el-form-item label="品牌" prop="brand" width="600px">
+          <el-form-item label="品牌" prop="brand" width="600px" v-if="![5, 6, 7].includes(orderState)">
             <el-select
               v-model="form.brand"
               value-key="brandName"
@@ -40,7 +47,7 @@
               <el-option v-for="item in brandSearchList" :key="item.brandId" :label="item.brandName" :value="item" />
             </el-select>
           </el-form-item>
-          <el-form-item label="订单描述" prop="orderDescription">
+          <el-form-item label="订单描述" prop="orderDescription" v-if="![5, 6, 7].includes(orderState)">
             <el-input
               :rows="3"
               type="textarea"
@@ -73,9 +80,26 @@
                 </template>
               </el-table-column>
               <el-table-column prop="supplierName" label="供应商" v-hasRole="['admin', 'purchase']"></el-table-column>
-              <el-table-column prop="purchasePrice" label="采购价"></el-table-column>
-              <el-table-column prop="referencePrice" label="建议售价"></el-table-column>
-              <el-table-column prop="deliveryTime" label="产品货期"></el-table-column>
+              <el-table-column
+                prop="purchasePrice"
+                label="采购价"
+                v-if="orderState >= 2 || isPurchase || isAdmin"
+              ></el-table-column>
+              <el-table-column
+                prop="referencePrice"
+                label="建议售价"
+                v-if="orderState >= 2 || isPurchase || isAdmin"
+              ></el-table-column>
+              <el-table-column prop="referencePrice" label="总价" v-if="orderState >= 2 || isPurchase || isAdmin">
+                <template #default="scope">
+                  <div>{{ scope.row.purchasePrice ? scope.row.purchasePrice * scope.row.quantity : '' }}</div>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="deliveryTime"
+                label="产品货期"
+                v-if="orderState >= 2 || isPurchase || isAdmin"
+              ></el-table-column>
               <el-table-column prop="purchaseAttachmentList" label="采购附件" v-hasRole="['admin', 'purchase']">
                 <template #default="scope">
                   <div v-for="item in scope.row.purchaseAttachmentList">
@@ -114,7 +138,17 @@
             </el-table>
           </el-form-item>
         </el-form>
-        <el-row class="clearfix fr">
+        <div class="totalPrice" v-if="orderState >= 2 && orderState != 6">
+          <div>
+            订单总价：
+            <span>{{ totalPrice }}</span>
+            元
+          </div>
+          <!-- <el-text class="mx-1" type="warning">订单总价：{{ totalPrice }}元</el-text> -->
+
+          <!-- <el-link type="warning" :underline="false">订单总价：{{ totalPrice }}元</el-link> -->
+        </div>
+        <el-row class="clearfix fr mt20">
           <el-button v-show="[0, 6].includes(orderState)" type="primary" @click="submitForm(1)">发送询价</el-button>
           <el-button v-show="[0, 6].includes(orderState)" type="success" @click="submitForm(6)">保存草稿</el-button>
           <el-button
@@ -180,7 +214,7 @@
         </el-row>
       </el-main>
       <el-aside class="message-containar">
-        <omsMessage></omsMessage>
+        <orderMessage></orderMessage>
       </el-aside>
     </el-container>
     <modelDialog ref="modelDialogRef" @editProduct="updateProduct" :orderState="orderState" />
@@ -190,17 +224,15 @@
 <script setup name="Detaile">
 import { getOrder, addOrder, updateOrder, searchBrand, searchModel } from '@/api/purchase/list'
 import { onBeforeMount, reactive } from 'vue'
-import omsMessage from '../componments/omsMessage.vue'
+import orderMessage from './orderMessage.vue'
 import modelDialog from './modelDialog.vue'
 import { deepClone } from '@/utils/index'
-import useUserStore from '@/store/modules/user'
 const { proxy } = getCurrentInstance()
 const { order_state } = proxy.useDict('order_state')
 const canChange = ref(false)
 const orderState = ref(0)
 const orderId = proxy.$route.query.id
 const userHasRole = ref(false)
-const curRoles = useUserStore().roles
 const isSales = proxy.$auth.hasRole('sales')
 const isPurchase = proxy.$auth.hasRole('purchase')
 const isAdmin = proxy.$auth.hasRole('admin')
@@ -226,7 +258,7 @@ const data = reactive({
     modelName: '',
   },
 })
-
+const totalPrice = ref(0)
 const { form, rules, valueRule } = toRefs(data)
 
 onBeforeMount(() => {
@@ -248,6 +280,9 @@ onBeforeMount(() => {
           data.timProductList = data.timProductList.map((item) => {
             item.salesAttachmentList = item.salesAttachmentList || []
             item.purchaseAttachmentList = item.purchaseAttachmentList || []
+            if (item.purchasePrice) {
+              totalPrice.value = totalPrice.value + item.purchasePrice * item.quantity
+            }
             item.model = {
               modelId: item.modelId,
               modelName: item.modelName,
@@ -259,6 +294,7 @@ onBeforeMount(() => {
             return item
           })
         }
+
         nextTick(() => {
           form.value = data
           setInterval(() => {
@@ -430,7 +466,7 @@ function timingTime(start) {
   let s = Math.floor(f / 60) // 小时
   let ss = s % 24
   let day = Math.floor(s / 24) // 天数
-  return day + '天' + ss + '时' + ff + '分' + mm + '秒'
+  return day + '天' + ss + '小时' + ff + '分' + mm + '秒'
 }
 </script>
 
@@ -440,6 +476,16 @@ function timingTime(start) {
   .timProductList {
     .cell {
       padding: 0 4px;
+    }
+  }
+  .totalPrice {
+    display: flex;
+    justify-content: end;
+    font-size: 16px;
+    color: var(--el-color-warning);
+    padding-right: 20px;
+    span {
+      font-size: 22px;
     }
   }
 
@@ -480,7 +526,9 @@ function timingTime(start) {
     font-size: 15px;
     line-height: 24px;
   }
-
+  .purchase-order-main {
+    box-sizing: border-box;
+  }
   .purchase-order {
     position: relative;
     padding: 20px;
@@ -493,6 +541,7 @@ function timingTime(start) {
   .message-containar {
     width: 25%;
     max-width: 350px;
+    margin-bottom: 0;
     flex-shrink: 0;
     // margin-left: 20px;
     box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.12);
