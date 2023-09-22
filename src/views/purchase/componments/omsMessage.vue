@@ -26,6 +26,16 @@
 <script setup name="omsMessage">
 // setup
 const message = '123消息'
+const msgList = ref([])
+
+import { chatList } from '@/api/purchase/list'
+
+function getChatList() {
+  chatList().then((res) => {
+    msgList.value = res || []
+  })
+}
+getChatList()
 </script>
 
 <style lang="scss">

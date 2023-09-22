@@ -79,10 +79,28 @@ export function searchSupplier(query) {
   })
 }
 
-// /purchase/count
+// 获取分类订单数量
 export function getPurchaseCount(query) {
   return request({
     url: '/purchase/count',
+    method: 'get',
+    params: query,
+  })
+}
+
+// 发送消息
+export function pushChat(data) {
+  return request({
+    url: '/chat',
+    method: 'post',
+    data: data,
+  })
+}
+
+// 发送消息
+export function chatList(query) {
+  return request({
+    url: '/chat/listNoPage',
     method: 'get',
     params: query,
   })

@@ -214,7 +214,7 @@
         </el-row>
       </el-main>
       <el-aside class="message-containar">
-        <orderMessage></orderMessage>
+        <orderMessage v-if="form.purchaseId" :purchaseId="form.purchaseId"></orderMessage>
       </el-aside>
     </el-container>
     <modelDialog ref="modelDialogRef" @editProduct="updateProduct" :orderState="orderState" />
