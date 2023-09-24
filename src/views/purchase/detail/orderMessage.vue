@@ -30,7 +30,7 @@
             </div>
           </div>
         </div>
-        <div class="fileList" v-if="form.chatAttachmentList">
+        <div class="fileList" v-if="form.chatAttachmentList" ref="fileListRef">
           <span class="mr20" v-for="item in form.chatAttachmentList">
             <Document style="width: 1em; height: 1em; margin-right: 8px" />
             <el-link
@@ -63,6 +63,7 @@
               :headers="headers"
               :show-file-list="false"
               accept=".bmp, .gif, .jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .ppt, .pptx, .html, .htm, .txt, .rar, .zip, .gz, .bz2, .mp4, .avi, .rmvb, .pdf"
+              @success="uploadSuccess"
             >
               <el-button type="primary">上传附件</el-button>
             </el-upload>
@@ -81,7 +82,6 @@ import { pushChat, chatList } from '@/api/purchase/list'
 import { getToken } from '@/utils/auth'
 import { nextTick, onMounted, reactive } from 'vue'
 import useUserStore from '@/store/modules/user'
-import { scrollTo } from '@/utils/scroll-to'
 const headers = ref({ Authorization: 'Bearer ' + getToken() })
 const { proxy } = getCurrentInstance()
 const base = import.meta.env.VITE_APP_BASE_API
@@ -111,7 +111,6 @@ function enterSubmit(e) {
     submitMsg()
   }
 }
-const listEl = document.getElementsByClassName('msg-liat')[0]
 function getChatList() {
   chatList({ purchaseId: props.purchaseId }).then((res) => {
     msgList.value = res.reverse() || []
@@ -121,6 +120,16 @@ function getChatList() {
       let listHeight = proxy.$refs['msgListRef'].clientHeight
       proxy.$refs['msgWarpRef'].$el.scrollTo(0, listHeight - boxHeight)
     })
+  })
+}
+function uploadSuccess() {
+  console.log('滚动条')
+  nextTick(() => {
+    let boxHeight = proxy.$refs['msgWarpRef'].$el.clientHeight
+    let listHeight = proxy.$refs['msgListRef'].clientHeight
+    console.log(proxy.$refs['fileListRef'])
+    let fileHieght = proxy.$refs['fileListRef'].clientHeight
+    proxy.$refs['msgWarpRef'].$el.scrollTo(0, listHeight - boxHeight + fileHieght)
   })
 }
 // getChatList()
@@ -155,7 +164,7 @@ onMounted(() => {
         .sender {
           display: flex;
           align-items: center;
-          font-size: 14px;
+          font-size: 13px;
           line-height: 20px;
           span {
             margin: 0 5px;
@@ -176,7 +185,7 @@ onMounted(() => {
         }
         .content {
           margin-top: 5px;
-          font-size: 16px;
+          font-size: 13px;
           line-height: 20px;
           padding: 0 10px;
           display: flex;
