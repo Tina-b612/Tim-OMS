@@ -53,6 +53,41 @@
   margin-left: 20px;
 }
 
+.flex {
+  display: flex;
+}
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.flex-center-left {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.flex-center-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.flex-center-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-center-around {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.flex-start-left {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
 .h1,
 .h2,
 .h3,

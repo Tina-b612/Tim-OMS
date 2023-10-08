@@ -23,12 +23,12 @@
           </div>
         </div>
         <!-- <div>{{ curRoles }}</div> -->
-        <el-descriptions style="padding-left: 100px" class="mt20" size="large" v-if="[5, 6, 7].includes(orderState)">
+        <el-descriptions style="padding-left: 100px" class="mt20" size="large" v-if="[5, 7].includes(orderState)">
           <el-descriptions-item label="品牌名称">{{ form.brandName }}</el-descriptions-item>
           <el-descriptions-item label="订单描述">{{ form.orderDescription }}</el-descriptions-item>
         </el-descriptions>
         <el-form class="mt20" ref="orderRef" :model="form" :rules="rules" label-width="80px" :disabled="false">
-          <el-form-item label="品牌" prop="brand" width="600px" v-if="![5, 6, 7].includes(orderState)">
+          <el-form-item label="品牌" prop="brand" width="600px" v-if="![5, 7].includes(orderState)">
             <el-select
               v-model="form.brand"
               value-key="brandName"
@@ -47,7 +47,7 @@
               <el-option v-for="item in brandSearchList" :key="item.brandId" :label="item.brandName" :value="item" />
             </el-select>
           </el-form-item>
-          <el-form-item label="订单描述" prop="orderDescription" v-if="![5, 6, 7].includes(orderState)">
+          <el-form-item label="订单描述" prop="orderDescription" v-if="![5, 7].includes(orderState)">
             <el-input
               :rows="3"
               type="textarea"
@@ -97,7 +97,7 @@
               </el-table-column>
               <el-table-column
                 prop="deliveryTime"
-                label="产品货期"
+                label="修改货期"
                 v-if="orderState >= 2 || isPurchase || isAdmin"
               ></el-table-column>
               <el-table-column prop="purchaseAttachmentList" label="采购附件" v-hasRole="['admin', 'purchase']">
@@ -215,16 +215,19 @@
       </el-main>
       <el-aside class="message-containar">
         <orderMessage v-if="form.purchaseId" :purchaseId="form.purchaseId"></orderMessage>
+        <!-- 消息面板 -->
+        <omsMessage v-else></omsMessage>
       </el-aside>
     </el-container>
     <modelDialog ref="modelDialogRef" @editProduct="updateProduct" :orderState="orderState" />
   </div>
 </template>
 
-<script setup name="Detaile">
+<script setup name="Detail">
 import { getOrder, addOrder, updateOrder, searchBrand, searchModel } from '@/api/purchase/list'
 import { onBeforeMount, reactive } from 'vue'
 import orderMessage from './orderMessage.vue'
+import omsMessage from '../componments/omsMessage'
 import modelDialog from './modelDialog.vue'
 import { deepClone } from '@/utils/index'
 const { proxy } = getCurrentInstance()

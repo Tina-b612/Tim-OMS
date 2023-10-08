@@ -58,17 +58,22 @@ export const constantRoutes = [
     hidden: true,
   },
   {
+    path: '/index',
+    redirect: '/purchase/list',
+  },
+  {
     path: '',
-    component: Layout,
-    redirect: '/index',
-    children: [
-      {
-        path: '/index',
-        component: () => import('@/views/index'),
-        name: 'Index',
-        meta: { title: '首页', icon: 'dashboard', affix: true },
-      },
-    ],
+    // component: Layout,
+    // redirect: '/index',
+    redirect: '/purchase/list',
+    // children: [
+    //   {
+    //     path: '/index',
+    //     component: () => import('@/views/index'),
+    //     name: 'Index',
+    //     meta: { title: '首页', icon: 'dashboard', affix: true },
+    //   },
+    // ],
   },
   {
     path: '/user',

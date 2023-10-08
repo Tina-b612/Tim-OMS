@@ -114,12 +114,7 @@
           :name="order_state_map[item.orderState].value"
         ></el-tab-pane>
       </el-tabs>
-      <el-table
-        v-loading="loading"
-        :data="orderList"
-        @selection-change="handleSelectionChange"
-        @row-click="handleUpdate"
-      >
+      <el-table v-loading="loading" :data="orderList" @row-click="handleUpdate">
         <el-table-column type="index" label="序号" width="60" />
         <el-table-column label="订单号" align="center" prop="purchaseSn" />
         <el-table-column label="品牌" align="center" prop="brandName" />
@@ -311,21 +306,16 @@ function resetQuery() {
   proxy.resetForm('queryRef')
   handleQuery()
 }
-// 多选框选中数据
-function handleSelectionChange(selection) {
-  this.ids = selection.map((item) => item.purchaseId)
-  this.single = selection.length !== 1
-  this.multiple = !selection.length
-}
+
 /** 新增按钮操作 */
 function handleAdd() {
   // dialogTitle.value = "新增订单"
   // proxy.$refs["orderEditDialogRef"].show();
-  proxy.$router.push({ name: 'Detail' })
+  proxy.$router.push({ name: 'Purchase/detail' })
 }
 /** 修改按钮操作 */
 function handleUpdate(row) {
-  proxy.$router.push({ name: 'Detail', query: { id: row.purchaseId } })
+  proxy.$router.push({ name: 'Purchase/detail', query: { id: row.purchaseId } })
 }
 
 const selectLoading = ref(false)

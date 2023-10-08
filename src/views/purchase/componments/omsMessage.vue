@@ -55,7 +55,7 @@ getChatList()
 // }, 1000)
 
 function gotoOrder(purchaseId) {
-  proxy.$router.push({ name: 'Detail', query: { id: purchaseId } })
+  proxy.$router.push({ name: 'Purchase/detail', query: { id: purchaseId } })
 }
 </script>
 

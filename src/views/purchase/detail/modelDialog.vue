@@ -81,8 +81,8 @@
             <template #append>元</template>
           </el-input>
         </el-form-item>
-        <el-form-item label="产品货期" prop="deliveryTime" style="width: 300px">
-          <el-input v-model="form.deliveryTime" placeholder="请输入产品货期">
+        <el-form-item label="修改货期" prop="deliveryTime" style="width: 300px">
+          <el-input v-model="form.deliveryTime" placeholder="请输入修改货期">
             <template #append>天</template>
           </el-input>
         </el-form-item>
@@ -179,7 +179,7 @@ function handleSearchSupplierList(supplierName) {
     selectLoading.value = true
     searchSupplier({ supplierName: supplierName }).then((response) => {
       selectLoading.value = false
-      supplierSearchList.value = response.rows
+      supplierSearchList.value = response
     })
   }
 }

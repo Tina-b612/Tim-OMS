@@ -6,7 +6,7 @@
         <div class="msg-list" ref="msgListRef">
           <div :class="['msg-item', { self: item.userName === userName }]" v-for="item in msgList" :key="item.chatId">
             <div class="sender">
-              <img class="avatar" v-if="item.userName === userName" :src="avatar" alt="" />
+              <img class="avatar" v-if="item.avatar" :src="baseApi + item.avatar" alt="" />
               <el-icon v-else><Service /></el-icon>
               <span>
                 {{ item.senderName || 'xxx' }}
@@ -87,6 +87,7 @@ const { proxy } = getCurrentInstance()
 const base = import.meta.env.VITE_APP_BASE_API
 const userName = useUserStore().name
 const avatar = useUserStore().avatar
+const baseApi = import.meta.env.VITE_APP_BASE_API
 console.log(userName)
 const props = defineProps({
   purchaseId: null,
@@ -113,8 +114,7 @@ function enterSubmit(e) {
 }
 function getChatList() {
   chatList({ purchaseId: props.purchaseId }).then((res) => {
-    msgList.value = res.reverse() || []
-    // proxy.$refs['msgListRef'].scrollTop = 100
+    msgList.value = res ? res.reverse() : []
     nextTick(() => {
       let boxHeight = proxy.$refs['msgWarpRef'].$el.clientHeight
       let listHeight = proxy.$refs['msgListRef'].clientHeight
@@ -123,11 +123,9 @@ function getChatList() {
   })
 }
 function uploadSuccess() {
-  console.log('滚动条')
   nextTick(() => {
     let boxHeight = proxy.$refs['msgWarpRef'].$el.clientHeight
     let listHeight = proxy.$refs['msgListRef'].clientHeight
-    console.log(proxy.$refs['fileListRef'])
     let fileHieght = proxy.$refs['fileListRef'].clientHeight
     proxy.$refs['msgWarpRef'].$el.scrollTo(0, listHeight - boxHeight + fileHieght)
   })
