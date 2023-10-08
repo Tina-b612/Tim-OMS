@@ -29,23 +29,7 @@
         </el-descriptions>
         <el-form class="mt20" ref="orderRef" :model="form" :rules="rules" label-width="80px" :disabled="false">
           <el-form-item label="品牌" prop="brand" width="600px" v-if="![5, 7].includes(orderState)">
-            <el-select
-              v-model="form.brand"
-              value-key="brandName"
-              allow-create
-              filterable
-              default-first-option
-              clearable
-              remote
-              placeholder="请输入品牌名称"
-              remote-show-suffix
-              :remote-method="handleSearchBrandList"
-              @change="brandSelectChange"
-              :loading="selectLoading"
-              :disabled="orderState == 5 || orderState == 7"
-            >
-              <el-option v-for="item in brandSearchList" :key="item.brandId" :label="item.brandName" :value="item" />
-            </el-select>
+            <brandSelect v-model="form.brand" orderState></brandSelect>
           </el-form-item>
           <el-form-item label="订单描述" prop="orderDescription" v-if="![5, 7].includes(orderState)">
             <el-input
@@ -224,10 +208,11 @@
 </template>
 
 <script setup name="Detail">
-import { getOrder, addOrder, updateOrder, searchBrand, searchModel } from '@/api/purchase/list'
+import { getOrder, addOrder, updateOrder } from '@/api/purchase/list'
 import { onBeforeMount, reactive } from 'vue'
 import orderMessage from './orderMessage.vue'
 import omsMessage from '../componments/omsMessage'
+import brandSelect from '@/views/purchase/componments/brandSelect'
 import modelDialog from './modelDialog.vue'
 import { deepClone } from '@/utils/index'
 const { proxy } = getCurrentInstance()
@@ -274,10 +259,10 @@ onBeforeMount(() => {
         let data = res.data
         orderState.value = data.orderState
         canChange.value = proxy.$auth.hasRoleOr(['admin', 'common']) && [1, 2, 3, 4, 6, 7].includes(data.orderState)
-        data.brand = {
-          brandId: data.brandId,
-          brandName: data.brandName,
-        }
+        // data.brand = {
+        //   brandId: data.brandId,
+        //   brandName: data.brandName,
+        // }
         brandSearchList.value.push(data.brand)
         if (data.timProductList) {
           data.timProductList = data.timProductList.map((item) => {
@@ -315,25 +300,7 @@ onBeforeMount(() => {
 // brandList 搜索品牌
 const selectLoading = ref(false)
 const brandSearchList = ref([])
-function handleSearchBrandList(brandName) {
-  if (brandName) {
-    selectLoading.value = true
-    searchBrand({ brandName: brandName }).then((response) => {
-      selectLoading.value = false
-      brandSearchList.value = response.rows
-    })
-  }
-}
-// 选择品牌
-function brandSelectChange(value) {
-  if (typeof value === 'string') {
-    form.value.brandId = ''
-    form.value.brandName = value
-  } else {
-    form.value.brandId = value.brandId
-    form.value.brandName = value.brandName
-  }
-}
+
 // 修改产品
 function handleEditProduct(row, index) {
   if (row) {
@@ -410,12 +377,16 @@ function submitForm(orderState) {
           // selectionProduct  多选下单
         }
         form.value.orderState = orderState
+        // form.value.brandId = form.value.brand.brandId
+        // form.value.brandName = form.value.brand.brandName
         updateOrder(form.value).then((response) => {
           // proxy.$modal.msgSuccess('修改成功')
           proxy.$tab.closeOpenPage({ path: '/purchase/list' })
         })
       } else {
         form.value.orderState = orderState
+        // form.value.brandId = form.value.brand.brandId
+        // form.value.brandName = form.value.brand.brandName
         addOrder(form.value).then((response) => {
           proxy.$modal.msgSuccess('新增成功')
           proxy.$tab.closeOpenPage({ path: '/purchase/list' })

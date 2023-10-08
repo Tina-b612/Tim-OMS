@@ -42,3 +42,12 @@ export function delBrand(brandId) {
     method: 'delete',
   })
 }
+
+// 批量修改brand
+export function listBrandUpdate(data) {
+  return request({
+    url: '/brand/listBrandUpdate',
+    method: 'put',
+    data: data,
+  })
+}

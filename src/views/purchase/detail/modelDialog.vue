@@ -30,7 +30,7 @@
       <el-form-item label="销售附件" prop="salesAttachmentList" v-hasRole="['sales']">
         <el-upload
           v-model:file-list="form.salesAttachmentList"
-          action="/dev-api/system/info/add"
+          :action="base + '/system/info/add'"
           :limit="3"
           :headers="headers"
           accept=".bmp, .gif, .jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .ppt, .pptx, .html, .htm, .txt, .rar, .zip, .gz, .bz2, .mp4, .avi, .rmvb, .pdf"
@@ -89,7 +89,7 @@
         <el-form-item label="采购附件" prop="purchaseAttachmentList">
           <el-upload
             v-model:file-list="form.purchaseAttachmentList"
-            action="/dev-api/system/info/add"
+            :action="base + '/system/info/add'"
             accept=".bmp, .gif, .jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .ppt, .pptx, .html, .htm, .txt, .rar, .zip, .gz, .bz2, .mp4, .avi, .rmvb, .pdf"
             :headers="headers"
           >
@@ -109,6 +109,7 @@
 import { searchModel, searchSupplier } from '@/api/purchase/list'
 import { reactive } from 'vue'
 import { getToken } from '@/utils/auth'
+const base = import.meta.env.VITE_APP_BASE_API
 const headers = ref({ Authorization: 'Bearer ' + getToken() })
 const props = defineProps({
   title: {

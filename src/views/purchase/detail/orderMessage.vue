@@ -6,7 +6,7 @@
         <div class="msg-list" ref="msgListRef">
           <div :class="['msg-item', { self: item.userName === userName }]" v-for="item in msgList" :key="item.chatId">
             <div class="sender">
-              <img class="avatar" v-if="item.avatar" :src="baseApi + item.avatar" alt="" />
+              <img class="avatar" v-if="item.avatar" :src="base + item.avatar" alt="" />
               <el-icon v-else><Service /></el-icon>
               <span>
                 {{ item.senderName || 'xxx' }}
@@ -58,7 +58,7 @@
           <el-row justify="end" class="mt10">
             <el-upload
               v-model:file-list="form.chatAttachmentList"
-              action="/dev-api/system/info/add"
+              :action="base + '/system/info/add'"
               :limit="3"
               :headers="headers"
               :show-file-list="false"
@@ -87,7 +87,6 @@ const { proxy } = getCurrentInstance()
 const base = import.meta.env.VITE_APP_BASE_API
 const userName = useUserStore().name
 const avatar = useUserStore().avatar
-const baseApi = import.meta.env.VITE_APP_BASE_API
 console.log(userName)
 const props = defineProps({
   purchaseId: null,

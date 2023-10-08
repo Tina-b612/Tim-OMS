@@ -12,7 +12,6 @@
     :remote-method="handleSearchBrandList"
     @change="brandSelectChange"
     :loading="selectLoading"
-    :disabled="orderState == 5 || orderState == 7"
   >
     <el-option
       class="flex-center-between"
@@ -35,15 +34,11 @@
 // setup
 import { searchBrand } from '@/api/purchase/list'
 import { watch } from 'vue'
-import { onBeforeMount, onMounted, reactive } from 'vue'
 import { deepClone } from '@/utils/index'
 const emit = defineEmits()
 const props = defineProps({
   modelValue: [String, Object],
-  orderState: {
-    type: [String, Number],
-    default: 1,
-  },
+  remoteFunction: [Function],
 })
 const selectLoading = ref(false)
 const brandSearchList = ref([])

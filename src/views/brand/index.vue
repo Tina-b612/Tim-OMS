@@ -20,6 +20,24 @@
       <el-form-item label="国家" prop="country">
         <el-input v-model="queryParams.country" placeholder="请输入国家" clearable @keyup.enter.native="handleQuery" />
       </el-form-item>
+      <el-form-item label="品牌负责人" prop="country">
+        <el-select
+          v-model="queryParams.responsibleUserId"
+          filterable
+          remote
+          placeholder="请输入品牌负责人"
+          remote-show-suffix
+          :remote-method="handleSearchPurchaseUser"
+          :loading="selectLoading"
+        >
+          <el-option
+            v-for="item in purchaseUserSearchList"
+            :key="item.userId"
+            :label="item.nickName"
+            :value="item.userId"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="创建时间" prop="createTime">
         <el-date-picker
           clearable
@@ -30,21 +48,21 @@
         ></el-date-picker>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="el-icon-search" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" @click="resetQuery">重置</el-button>
+        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain icon="el-icon-plus" @click="handleAdd" v-hasPermi="['purchase:brand:add']">
-          新增
-        </el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button type="success" plain icon="UserFilled" @click="multipleBrandUpdate">批量分配负责人</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="brandList">
+    <el-table v-loading="loading" :data="brandList" @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="55" />
       <el-table-column label="品牌ID" align="center" prop="brandId" />
       <el-table-column label="品牌名称" align="center" prop="brandName" />
       <el-table-column label="品牌logo" align="center" prop="logo">
@@ -53,6 +71,7 @@
         </template>
       </el-table-column>
       <el-table-column label="国家" align="center" prop="country" />
+      <el-table-column label="品牌负责人" align="center" prop="responsibleUserName" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template v-slot="scope">
           <el-button size="small" type="primary" link icon="edit" @click="handleUpdate(scope.row)">修改</el-button>
@@ -70,7 +89,7 @@
 
     <!-- 添加或修改brand对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="formRef" :model="form" :rules="rules">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="90">
         <el-form-item label="品牌名称" prop="brandName">
           <el-input v-model="form.brandName" placeholder="请输入品牌名称" />
         </el-form-item>
@@ -80,21 +99,70 @@
         <el-form-item label="国家" prop="country">
           <el-input v-model="form.country" placeholder="请输入国家" />
         </el-form-item>
+        <el-form-item label="品牌负责人" prop="responsibleUserName">
+          <el-select
+            v-model="form.responsibleUserId"
+            filterable
+            remote
+            placeholder="请输入品牌负责人"
+            remote-show-suffix
+            :remote-method="handleSearchPurchaseUser"
+            :loading="selectLoading"
+          >
+            <el-option
+              v-for="item in purchaseUserSearchList"
+              :key="item.userId"
+              :label="item.nickName"
+              :value="item.userId"
+            />
+          </el-select>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer flex-center">
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+
+    <el-dialog title="批量分配负责人" v-model="responsibleOpen" width="500px" append-to-body>
+      <el-form ref="responsibleFormRef" :model="responsibleForm" label-width="90">
+        <el-form-item label="品牌负责人" prop="responsibleUserName">
+          <el-select
+            v-model="responsibleForm.responsibleUserId"
+            filterable
+            remote
+            placeholder="请输入品牌负责人"
+            remote-show-suffix
+            :remote-method="handleSearchPurchaseUser"
+            :loading="selectLoading"
+          >
+            <el-option
+              v-for="item in purchaseUserSearchList"
+              :key="item.userId"
+              :label="item.nickName"
+              :value="item.userId"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer flex-center">
+        <el-button type="primary" @click="responsibleSubmitForm">确 定</el-button>
+        <el-button @click="responsibleCancel">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { listBrand, getBrand, delBrand, addBrand, updateBrand } from '@/api/purchase/brand'
+import { listBrand, getBrand, delBrand, addBrand, updateBrand, listBrandUpdate } from '@/api/purchase/brand'
+
+import { SearchUser } from '@/api/purchase/list'
 
 const { proxy } = getCurrentInstance()
 // 遮罩层
 const loading = ref(true)
+const responsibleOpen = ref(false)
+const responsibleForm = ref({})
 // 显示搜索条件
 const showSearch = ref(true)
 // 总条数
@@ -123,6 +191,7 @@ const rules = {
   updateTime: [{ required: true, message: '更新时间不能为空', trigger: 'blur' }],
   createTime: [{ required: true, message: '创建时间不能为空', trigger: 'blur' }],
 }
+const multipleSelection = ref([])
 
 onMounted(() => {
   getList()
@@ -136,6 +205,26 @@ function getList() {
     total.value = response.total
     loading.value = false
   })
+}
+
+// 搜索销售员
+
+const selectLoading = ref(false)
+// 搜索采购员
+const purchaseUserSearchList = ref([])
+function handleSearchPurchaseUser(userName) {
+  if (userName) {
+    selectLoading.value = true
+    SearchUser({ purchaseNickName: userName }).then((response) => {
+      selectLoading.value = false
+      purchaseUserSearchList.value = response.rows.filter((item) => {
+        return {
+          label: item.nickName,
+          velue: item.userId,
+        }
+      })
+    })
+  }
 }
 // 取消按钮
 function cancel() {
@@ -182,6 +271,34 @@ function handleUpdate(row) {
     open.value = true
     title.value = '修改brand'
   })
+}
+
+function handleSelectionChange(val) {
+  multipleSelection.value = val
+}
+
+function multipleBrandUpdate() {
+  if (multipleSelection.value.length) {
+    responsibleOpen.value = true
+  } else {
+    proxy.$modal.msgError('请选择需分配的品牌')
+  }
+}
+
+function responsibleSubmitForm() {
+  listBrandUpdate({
+    timBrandList: multipleSelection.value,
+    responsibleUserId: responsibleForm.value.responsibleUserId,
+  }).then((res) => {
+    proxy.$modal.msgSuccess('分配成功')
+    responsibleOpen.value = false
+    getList()
+  })
+}
+
+function responsibleCancel() {
+  responsibleOpen.value = false
+  responsibleForm.value = {}
 }
 
 /** 提交按钮 */

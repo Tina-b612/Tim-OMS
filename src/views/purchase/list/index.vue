@@ -41,6 +41,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="品牌名称" prop="brandId">
+          <!-- <brandSelect v-model="queryParams.brandId"></brandSelect> -->
           <el-select
             v-model="queryParams.brandId"
             filterable
@@ -52,11 +53,19 @@
             :loading="selectLoading"
           >
             <el-option
+              class="flex-center-between"
+              style="width: 280px"
               v-for="item in brandSearchList"
               :key="item.brandId"
               :label="item.brandName"
               :value="item.brandId"
-            />
+            >
+              <img :src="item.logo" style="width: 22px; height: 22px" />
+              <span style="width: 120px">{{ item.brandName }}</span>
+              <span style="width: 50px; color: var(--el-text-color-secondary); font-size: 12px; margin-left: 4px">
+                {{ item.country || '未知国家' }}
+              </span>
+            </el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="订单号" prop="purchaseSn">
@@ -175,7 +184,8 @@
 import { listOrder, SearchUser, searchBrand, getPurchaseCount } from '@/api/purchase/list'
 import { reactive } from 'vue'
 import OrderEditDialog from './orderEditDialog'
-import omsMessage from '../componments/omsMessage.vue'
+import brandSelect from '@/views/purchase/componments/brandSelect'
+import omsMessage from '../componments/omsMessage'
 
 const activeName = ref('0')
 
