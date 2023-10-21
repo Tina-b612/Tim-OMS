@@ -67,7 +67,7 @@
       <el-table-column label="品牌名称" align="center" prop="brandName" />
       <el-table-column label="品牌logo" align="center" prop="logo">
         <template #default="scope">
-          <img v-if="scope.row.logo" class="loge-image" :src="scope.row.logo" alt="" />
+          <img class="loge-image" :src="scope.row.logo || defaultLogo" alt="" />
         </template>
       </el-table-column>
       <el-table-column label="国家" align="center" prop="country" />
@@ -157,6 +157,8 @@
 import { listBrand, getBrand, delBrand, addBrand, updateBrand, listBrandUpdate } from '@/api/purchase/brand'
 
 import { SearchUser } from '@/api/purchase/list'
+
+import defaultLogo from '@/assets/images/default.png'
 
 const { proxy } = getCurrentInstance()
 // 遮罩层
@@ -286,13 +288,16 @@ function multipleBrandUpdate() {
 }
 
 function responsibleSubmitForm() {
-  listBrandUpdate({
-    timBrandList: multipleSelection.value,
-    responsibleUserId: responsibleForm.value.responsibleUserId,
-  }).then((res) => {
-    proxy.$modal.msgSuccess('分配成功')
-    responsibleOpen.value = false
-    getList()
+  proxy.$modal.confirm('确认要批量分配这些品牌吗？').then(() => {
+    listBrandUpdate({
+      timBrandList: multipleSelection.value,
+      responsibleUserId: responsibleForm.value.responsibleUserId,
+    }).then((res) => {
+      proxy.$modal.msgSuccess('分配成功')
+      responsibleOpen.value = false
+      responsibleForm.value = {}
+      getList()
+    })
   })
 }
 

@@ -2,199 +2,108 @@
   <div class="common-layout purchase-order-detail">
     <el-container>
       <el-main class="purchase-order-main">
-        <div class="purchase-order-detail-header" v-if="form.purchaseId">
-          <div class="desc">
-            <dict-tag style="display: inline" :options="order_state" :value="form.orderState" />
-            <span>采购单号: {{ form.purchaseSn }}</span>
-            <span>销售负责人: {{ form.salesUserName }}</span>
-            <span>采购负责人: {{ form.purchaseUserName || '未分配' }}</span>
-            <span v-if="orderState <= 5">
-              当前状态等待时长:
-              <el-link type="warning">{{ timingTimeStr }}</el-link>
-            </span>
-          </div>
-          <div class="right">
-            <div>
-              <el-button type="primary" icon="Back" circle size="small"></el-button>
-              <span style="margin: 0 5px">1/15</span>
-              <el-button type="primary" icon="Right" circle size="small"></el-button>
-            </div>
-            <ChatDotSquare style="font-size: 30px; width: 1em; height: 1em; margin-left: 10px; color: #e6a23c" />
-          </div>
+        <div class="bgWhite borderbottom">
+          <el-row class="flex-center-right">
+            <el-button v-show="[0, 6].includes(orderState)" type="success" @click="submitForm(6)">保存为草稿</el-button>
+            <el-button v-show="[0, 6].includes(orderState)" type="success" @click="submitForm(1)">发送询价</el-button>
+            <el-button v-show="[0, 6].includes(orderState)" type="primary" plain @click="cancel()">取消</el-button>
+            <el-button
+              v-show="[1, 2].includes(orderState)"
+              v-hasRole="['admin', 'sales', 'purchase']"
+              type="primary"
+              @click="submitForm(orderState)"
+            >
+              修改询价
+            </el-button>
+          </el-row>
         </div>
-        <!-- <div>{{ curRoles }}</div> -->
-        <el-descriptions style="padding-left: 100px" class="mt20" size="large" v-if="[5, 7].includes(orderState)">
-          <el-descriptions-item label="品牌名称">{{ form.brandName }}</el-descriptions-item>
-          <el-descriptions-item label="订单描述">{{ form.orderDescription }}</el-descriptions-item>
-        </el-descriptions>
-        <el-form class="mt20" ref="orderRef" :model="form" :rules="rules" label-width="80px" :disabled="false">
-          <el-form-item label="品牌" prop="brand" width="600px" v-if="![5, 7].includes(orderState)">
-            <brandSelect v-model="form.brand" orderState></brandSelect>
-          </el-form-item>
-          <el-form-item label="订单描述" prop="orderDescription" v-if="![5, 7].includes(orderState)">
-            <el-input
-              :rows="3"
-              type="textarea"
-              v-model="form.orderDescription"
-              placeholder="请输入订单描述"
-              :disabled="orderState == 5 || orderState == 7"
-            />
-          </el-form-item>
-          <el-form-item label="产品型号" v-if="orderState != 5 && orderState != 7">
-            <el-button type="success" @click="handleEditProduct()">新增产品</el-button>
-          </el-form-item>
-          <el-form-item prop="timProductList">
-            <el-table :data="form.timProductList" border class="timProductList" style="width: 100%">
-              <!-- <el-table-column type="selection" width="55" /> -->
-              <el-table-column type="index" width="50" label="序号" />
-              <el-table-column prop="modelName" label="型号"></el-table-column>
-              <el-table-column
-                prop="productDescription"
-                label="产品描述"
-                :show-overflow-tooltip="true"
-              ></el-table-column>
-              <el-table-column prop="quantity" label="数量"></el-table-column>
-              <el-table-column prop="salesAttachmentList" label="销售附件">
-                <template #default="scope">
-                  <div v-for="item in scope.row.salesAttachmentList">
-                    <el-link type="primary" :href="base + (item.response.filePath || item.response.pathName)">
-                      {{ item.name }}
-                    </el-link>
-                  </div>
-                </template>
-              </el-table-column>
-              <el-table-column prop="supplierName" label="供应商" v-hasRole="['admin', 'purchase']"></el-table-column>
-              <el-table-column
-                prop="purchasePrice"
-                label="采购价"
-                v-if="orderState >= 2 || isPurchase || isAdmin"
-              ></el-table-column>
-              <el-table-column
-                prop="referencePrice"
-                label="建议售价"
-                v-if="orderState >= 2 || isPurchase || isAdmin"
-              ></el-table-column>
-              <el-table-column prop="referencePrice" label="总价" v-if="orderState >= 2 || isPurchase || isAdmin">
-                <template #default="scope">
-                  <div>{{ scope.row.purchasePrice ? scope.row.purchasePrice * scope.row.quantity : '' }}</div>
-                </template>
-              </el-table-column>
-              <el-table-column
-                prop="deliveryTime"
-                label="修改货期"
-                v-if="orderState >= 2 || isPurchase || isAdmin"
-              ></el-table-column>
-              <el-table-column prop="purchaseAttachmentList" label="采购附件" v-hasRole="['admin', 'purchase']">
-                <template #default="scope">
-                  <div v-for="item in scope.row.purchaseAttachmentList">
-                    <el-link type="primary" :href="base + (item.response.filePath || item.response.pathName)">
-                      {{ item.name }}
-                    </el-link>
-                  </div>
-                </template>
-              </el-table-column>
-              <el-table-column
-                v-if="orderState != 5 && orderState != 7"
-                label="操作"
-                align="center"
-                class-name="small-padding fixed-width"
-                width="80"
+        <el-form ref="orderRef" :model="form" :rules="rules" label-width="80px" :disabled="false">
+          <div class="bgWhite">
+            <el-form-item label="品牌" prop="brand" width="600px" v-if="![5, 7].includes(orderState)">
+              <brandSelect v-model="form.brand" orderState></brandSelect>
+            </el-form-item>
+            <el-form-item label="订单描述" prop="orderDescription" v-if="![5, 7].includes(orderState)">
+              <el-input
+                :rows="3"
+                type="textarea"
+                v-model="form.orderDescription"
+                placeholder="请输入订单描述"
+                :disabled="orderState == 5 || orderState == 7"
+              />
+            </el-form-item>
+          </div>
+          <div class="bgWhite mt20">
+            <el-form-item label="产品明细" v-if="orderState != 5 && orderState != 7">
+              <el-table
+                :data="form.timProductList"
+                border
+                class="timProductList"
+                :header-cell-style="{ 'text-align': 'center' }"
+                :cell-style="{ 'text-align': 'center' }"
+                style="width: 100%"
               >
-                <template #default="scope">
-                  <el-tooltip content="编辑" placement="top" v-if="scope.row.roleId !== 1">
-                    <el-button
-                      link
-                      type="primary"
-                      icon="Edit"
-                      @click="handleEditProduct(scope.row, scope.$index)"
-                    ></el-button>
-                  </el-tooltip>
-                  <el-tooltip content="删除" placement="top" v-if="scope.row.roleId !== 1">
-                    <el-button
-                      link
-                      type="primary"
-                      icon="Delete"
-                      @click="handleDeleteOrderItem(scope.$index)"
-                    ></el-button>
-                  </el-tooltip>
-                </template>
-              </el-table-column>
-            </el-table>
-          </el-form-item>
-        </el-form>
-        <div class="totalPrice" v-if="orderState >= 2 && orderState != 6">
-          <div>
-            订单总价：
-            <span>{{ totalPrice }}</span>
-            元
+                <!-- <el-table-column type="selection" width="55" /> -->
+                <el-table-column type="index" width="50" label="序号" />
+                <el-table-column prop="modelName" label="型号">
+                  <template #default="scope">
+                    <el-input v-model="scope.row.modelName" placeholder="请输入产品型号"></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="productDescription" label="产品描述" :show-overflow-tooltip="true">
+                  <template #default="scope">
+                    <el-input v-model="scope.row.productDescription" placeholder="请输入产品描述"></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="quantity" label="数量">
+                  <template #default="scope">
+                    <el-input-number v-model="scope.row.quantity" :min="1"></el-input-number>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="salesAttachmentList" label="销售附件">
+                  <template #default="scope">
+                    <el-upload
+                      v-model:file-list="scope.row.salesAttachmentList"
+                      :action="base + '/system/info/add'"
+                      :limit="3"
+                      :headers="headers"
+                      accept=".bmp, .gif, .jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .ppt, .pptx, .html, .htm, .txt, .rar, .zip, .gz, .bz2, .mp4, .avi, .rmvb, .pdf"
+                      :on-success="handleUploadSuccess"
+                    >
+                      <el-button type="primary">上传附件</el-button>
+                    </el-upload>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  v-if="orderState != 5 && orderState != 7"
+                  label="操作"
+                  align="center"
+                  class-name="small-padding fixed-width"
+                  width="80"
+                >
+                  <template #default="scope">
+                    <!-- <el-tooltip content="编辑" placement="top" v-if="scope.row.roleId !== 1">
+          <el-button link type="primary" icon="Edit" @click="handleEditProduct(scope.row, scope.$index)"></el-button>
+        </el-tooltip> -->
+                    <el-tooltip content="删除" placement="top" v-if="scope.row.roleId !== 1">
+                      <el-button
+                        link
+                        type="primary"
+                        icon="Delete"
+                        @click="handleDeleteOrderItem(scope.$index)"
+                      ></el-button>
+                    </el-tooltip>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-form-item>
           </div>
-          <!-- <el-text class="mx-1" type="warning">订单总价：{{ totalPrice }}元</el-text> -->
-
-          <!-- <el-link type="warning" :underline="false">订单总价：{{ totalPrice }}元</el-link> -->
-        </div>
-        <el-row class="clearfix fr mt20">
-          <el-button v-show="[0, 6].includes(orderState)" type="primary" @click="submitForm(1)">发送询价</el-button>
-          <el-button v-show="[0, 6].includes(orderState)" type="success" @click="submitForm(6)">保存草稿</el-button>
-          <el-button
-            v-show="[1, 2].includes(orderState)"
-            v-hasRole="['admin', 'sales', 'purchase']"
-            type="primary"
-            @click="submitForm(orderState)"
-          >
-            修改询价
+        </el-form>
+        <el-row class="bgWhite flex-center-right btn-box">
+          <el-button v-show="[0, 6].includes(orderState)" type="success" @click="submitForm(6)">保存为草稿</el-button>
+          <el-button v-show="[0, 6].includes(orderState)" type="success" @click="submitForm(1)">发送询价</el-button>
+          <el-button v-show="[0, 6].includes(orderState)" type="primary" @click="handleEditProduct()">
+            新增产品
           </el-button>
-          <el-button
-            v-show="[2].includes(orderState)"
-            v-hasRole="['admin', 'purchase']"
-            type="primary"
-            @click="submitForm(2)"
-          >
-            修改报价
-          </el-button>
-          <el-button
-            v-show="[2].includes(orderState)"
-            v-hasRole="['admin', 'sales']"
-            type="success"
-            @click="submitForm(3)"
-          >
-            确认下单
-          </el-button>
-          <el-button
-            v-show="[1].includes(orderState)"
-            v-hasRole="['admin', 'purchase']"
-            type="success"
-            @click="submitForm(2)"
-          >
-            确认报价
-          </el-button>
-          <el-button v-show="[3].includes(orderState)" v-hasRole="['admin']" type="primary" @click="submitForm(4)">
-            已付款
-          </el-button>
-          <el-button v-show="[4].includes(orderState)" v-hasRole="['admin', 'sales']" type="primary" @click="confirm">
-            已签收
-          </el-button>
-          <el-button v-show="[3].includes(orderState)" v-hasRole="['admin']" type="danger" @click="submitForm(2)">
-            驳回订单
-          </el-button>
-
-          <el-button
-            v-show="[1, 2, 6].includes(orderState)"
-            v-hasRole="['admin', 'sales']"
-            @click="cancel"
-            type="danger"
-          >
-            取消订单
-          </el-button>
-          <!---->
-
-          <!-- <el-button
-            v-if="[7].includes(orderState)"
-            type="primary"
-            v-hasRole="['admin', 'sales']"
-            @click="submitForm(6)"
-          >
-            退回草稿
-          </el-button> -->
         </el-row>
       </el-main>
       <el-aside class="message-containar">
@@ -203,7 +112,7 @@
         <omsMessage v-else></omsMessage>
       </el-aside>
     </el-container>
-    <modelDialog ref="modelDialogRef" @editProduct="updateProduct" :orderState="orderState" />
+    <!-- <modelDialog ref="modelDialogRef" @editProduct="updateProduct" :orderState="orderState" /> -->
   </div>
 </template>
 
@@ -215,6 +124,9 @@ import omsMessage from '../componments/omsMessage'
 import brandSelect from '@/views/purchase/componments/brandSelect'
 import modelDialog from './modelDialog.vue'
 import { deepClone } from '@/utils/index'
+import productList from './productList.vue'
+
+import { getToken } from '@/utils/auth'
 const { proxy } = getCurrentInstance()
 const { order_state } = proxy.useDict('order_state')
 const canChange = ref(false)
@@ -223,15 +135,20 @@ const orderId = proxy.$route.query.id
 const userHasRole = ref(false)
 const isSales = proxy.$auth.hasRole('sales')
 const isPurchase = proxy.$auth.hasRole('purchase')
-const isAdmin = proxy.$auth.hasRole('admin')
 const timingTimeStr = ref('')
 const base = import.meta.env.VITE_APP_BASE_API
+const headers = ref({ Authorization: 'Bearer ' + getToken() })
+
+const defaulfItem = {
+  modelName: null, // 型号
+  productDescription: '', // 产品描述
+  quantity: 1, // 采购数量
+  salesAttachmentList: [], //销售附件
+}
 const originForm = {
   brand: null,
-  brandId: null,
-  brandName: '',
-  orderDescription: '订单描述',
-  timProductList: [],
+  orderDescription: '',
+  timProductList: [defaulfItem],
 }
 const data = reactive({
   // 表单参数
@@ -364,34 +281,27 @@ function handleDeleteOrderItem(index) {
 function submitForm(orderState) {
   proxy.$refs['orderRef'].validate((valid) => {
     if (valid) {
-      if (form.value.purchaseId != undefined) {
-        if ((isPurchase && orderState === 2) || (isSales && orderState === 3)) {
-          for (let index = 0; index < form.value.timProductList.length; index++) {
-            const item = form.value.timProductList[index]
-            if (!item.purchasePrice) {
-              return proxy.$modal.msgError(`序号为${index + 1}的产品还未添加报价`)
-            }
-          }
+      for (let index = 0; index < form.value.timProductList.length; index++) {
+        const item = form.value.timProductList[index]
+        if (!item.model) {
+          return proxy.$modal.msgError(`序号为${index + 1}的产品还未填写型号`)
         }
-        if (orderState === 3) {
-          // selectionProduct  多选下单
-        }
-        form.value.orderState = orderState
-        // form.value.brandId = form.value.brand.brandId
-        // form.value.brandName = form.value.brand.brandName
-        updateOrder(form.value).then((response) => {
-          // proxy.$modal.msgSuccess('修改成功')
-          proxy.$tab.closeOpenPage({ path: '/purchase/list' })
-        })
-      } else {
-        form.value.orderState = orderState
-        // form.value.brandId = form.value.brand.brandId
-        // form.value.brandName = form.value.brand.brandName
-        addOrder(form.value).then((response) => {
-          proxy.$modal.msgSuccess('新增成功')
-          proxy.$tab.closeOpenPage({ path: '/purchase/list' })
-        })
       }
+
+      form.value.orderState = orderState
+      addOrder(form.value)
+        .then((response) => {
+          if (orderState === 1) {
+            proxy.$modal.msgSuccess('保存成功')
+          } else {
+            proxy.$modal.msgSuccess('新增成功')
+          }
+
+          proxy.$tab.closeOpenPage({ path: '/purchase/list' })
+        })
+        .catch((err) => {
+          proxy.$modal.msgError(err)
+        })
     }
   })
 }
@@ -442,11 +352,28 @@ function timingTime(start) {
   let day = Math.floor(s / 24) // 天数
   return day + '天' + ss + '小时' + ff + '分' + mm + '秒'
 }
+// 上传成功
+function handleUploadSuccess(res) {
+  if (res.code === 500) {
+    proxy.$modal.msgError(res.msg)
+  }
+}
 </script>
 
 <style lang="scss">
 /* style */
 .purchase-order-detail {
+  .borderBottom {
+    padding-bottom: 20px;
+    border-bottom: 1px dashed var(--el-border-color);
+  }
+  .bgWhite {
+    background: #fff;
+    padding: 15px;
+  }
+  .btn-box {
+    padding-top: 0;
+  }
   .timProductList {
     .cell {
       padding: 0 4px;

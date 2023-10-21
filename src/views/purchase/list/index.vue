@@ -2,7 +2,14 @@
   <div class="purchase-order-container">
     <!-- 订单列表 -->
     <div class="purchase-order">
-      <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-position="left">
+      <el-form
+        class="queryParams"
+        :model="queryParams"
+        ref="queryRef"
+        :inline="true"
+        v-show="showSearch"
+        label-position="left"
+      >
         <el-form-item label="采购负责人" prop="purchaseUserId">
           <el-select
             v-model="queryParams.purchaseUserId"
@@ -60,7 +67,7 @@
               :label="item.brandName"
               :value="item.brandId"
             >
-              <img :src="item.logo" style="width: 22px; height: 22px" />
+              <img :src="item.logo || defaultLogo" style="width: 22px; height: 22px" />
               <span style="width: 120px">{{ item.brandName }}</span>
               <span style="width: 50px; color: var(--el-text-color-secondary); font-size: 12px; margin-left: 4px">
                 {{ item.country || '未知国家' }}
@@ -104,9 +111,9 @@
         </el-form-item>
       </el-form>
 
-      <el-row :gutter="10" class="mb8">
+      <el-row :gutter="10" class="mb8 mt10">
         <el-col :span="1.5">
-          <el-button type="success" icon="Plus" v-hasRole="['sales', 'admin']" @click="handleAdd">创建订单</el-button>
+          <el-button type="success" icon="Plus" v-hasRole="['sales', 'admin']" @click="handleAdd">创建询价单</el-button>
         </el-col>
         <el-col :span="1.5">
           <!-- <el-button type="warning" plain icon="Download" @click="handleExport"
@@ -115,37 +122,40 @@
         <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
       </el-row>
 
-      <el-tabs v-model="activeName" type="card" class="demo-tabs" @tab-click="handleTabClick">
-        <el-tab-pane label="全部" name="0"></el-tab-pane>
-        <el-tab-pane
-          v-for="item in stateNumber"
-          :label="item.orderStatusCount ? order_state_map[item.orderState].label + `（${item.orderStatusCount}）` : ''"
-          :name="order_state_map[item.orderState].value"
-        ></el-tab-pane>
-      </el-tabs>
-      <el-table v-loading="loading" :data="orderList" @row-click="handleUpdate">
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column label="订单号" align="center" prop="purchaseSn" />
-        <el-table-column label="品牌" align="center" prop="brandName" />
-        <el-table-column label="采购负责人" align="center" prop="purchaseUserName" />
-        <el-table-column label="销售负责人" align="center" prop="salesUserName" />
-        <el-table-column label="订单状态" align="center" prop="orderState">
-          <template #default="scope">
-            <dict-tag :options="order_state" :value="scope.row.orderState" />
-          </template>
-        </el-table-column>
-        <!-- <el-table-column label="订单描述" align="center" prop="orderDescription" /> -->
-        <el-table-column label="订单创建时间" align="center" prop="createTime" width="180">
-          <template v-slot="scope">
-            <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="订单状态更新时间" align="center" prop="orderStateUpdateTime" width="180">
-          <template v-slot="scope">
-            <span>{{ parseTime(scope.row.orderStateUpdateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
-          </template>
-        </el-table-column>
-        <!-- <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <div class="purchase-order-list">
+        <el-tabs v-model="activeName" type="card" class="demo-tabs" @tab-click="handleTabClick">
+          <el-tab-pane label="全部" name="0"></el-tab-pane>
+          <el-tab-pane
+            v-for="item in stateNumber"
+            :label="
+              item.orderStatusCount ? order_state_map[item.orderState].label + `（${item.orderStatusCount}）` : ''
+            "
+            :name="order_state_map[item.orderState].value"
+          ></el-tab-pane>
+        </el-tabs>
+        <el-table v-loading="loading" :data="orderList" @row-click="handleUpdate">
+          <el-table-column type="index" label="序号" width="60" />
+          <el-table-column label="订单号" align="center" prop="purchaseSn" />
+          <el-table-column label="品牌" align="center" prop="brandName" />
+          <el-table-column label="采购负责人" align="center" prop="purchaseUserName" />
+          <el-table-column label="销售负责人" align="center" prop="salesUserName" />
+          <el-table-column label="订单状态" align="center" prop="orderState">
+            <template #default="scope">
+              <dict-tag :options="order_state" :value="scope.row.orderState" />
+            </template>
+          </el-table-column>
+          <!-- <el-table-column label="订单描述" align="center" prop="orderDescription" /> -->
+          <el-table-column label="订单创建时间" align="center" prop="createTime" width="180">
+            <template v-slot="scope">
+              <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="订单状态更新时间" align="center" prop="orderStateUpdateTime" width="180">
+            <template v-slot="scope">
+              <span>{{ parseTime(scope.row.orderStateUpdateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+            </template>
+          </el-table-column>
+          <!-- <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template v-slot="scope">
             <el-button
               size="small"
@@ -159,15 +169,16 @@
             </el-button>
           </template>
         </el-table-column> -->
-      </el-table>
+        </el-table>
 
-      <pagination
-        v-show="total > 0"
-        :total="total"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        @pagination="getList"
-      />
+        <pagination
+          v-show="total > 0"
+          :total="total"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          @pagination="getList"
+        />
+      </div>
     </div>
 
     <!-- 消息面板 -->
@@ -186,6 +197,8 @@ import { reactive } from 'vue'
 import OrderEditDialog from './orderEditDialog'
 import brandSelect from '@/views/purchase/componments/brandSelect'
 import omsMessage from '../componments/omsMessage'
+
+import defaultLogo from '@/assets/images/default.png'
 
 const activeName = ref('0')
 
@@ -376,11 +389,19 @@ getList()
   display: flex;
   height: 100%;
   // overflow: scroll;
+  .queryParams {
+    background: #fff;
+    padding: 15px;
+  }
+  .purchase-order-list {
+    background: #fff;
+    padding: 20px 10px;
+  }
   .purchase-order {
     position: relative;
     padding: 20px;
     .pagination-container .el-pagination {
-      right: 20px;
+      right: 40px;
     }
   }
   .message-containar {

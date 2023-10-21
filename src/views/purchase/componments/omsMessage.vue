@@ -71,6 +71,7 @@ function gotoOrder(purchaseId) {
   height: 100%;
   display: flex;
   flex-direction: column;
+  background: #fff;
   .omsMessage-header {
     padding: 10px;
     line-height: 40px;
