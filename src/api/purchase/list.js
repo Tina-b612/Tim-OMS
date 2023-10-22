@@ -55,7 +55,7 @@ export function SearchUser(query) {
 // 查询品牌
 export function searchBrand(query) {
   return request({
-    url: '/brand/listForUser',
+    url: '/brand/listForAll',
     method: 'get',
     params: query,
   })

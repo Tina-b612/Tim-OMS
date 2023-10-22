@@ -59,13 +59,13 @@ export const constantRoutes = [
   },
   {
     path: '/index',
-    redirect: '/purchase/list',
+    redirect: '/inquiry',
   },
   {
     path: '',
     // component: Layout,
     // redirect: '/index',
-    redirect: '/purchase/list',
+    redirect: '/inquiry',
     // children: [
     //   {
     //     path: '/index',
