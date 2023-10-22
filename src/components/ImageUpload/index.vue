@@ -169,7 +169,6 @@ function uploadedSuccessfully() {
     fileList.value = fileList.value.filter((f) => f.url !== undefined).concat(uploadList.value)
     uploadList.value = []
     number.value = 0
-    console.log(listToString(fileList.value))
     emit('update:modelValue', listToString(fileList.value))
     proxy.$modal.closeLoading()
   }
