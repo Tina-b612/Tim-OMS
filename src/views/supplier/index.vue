@@ -107,12 +107,12 @@
     />
 
     <!-- 添加或修改供应商管理对话框 -->
-    <!-- <editModel :title="title" ref="editModelRef" @submit="getList"></editModel> -->
+    <editModel :title="title" ref="editModelRef" @submit="getList"></editModel>
   </div>
 </template>
 
 <script setup>
-import { listSupplier, getSupplier, addSupplier, updateSupplier } from '@/api/supplier/supplier'
+import { listSupplier } from '@/api/supplier'
 import { searchUser, searchSupplier, searchBrand } from '@/api/brand'
 import SimpleSelect from '@/components/SimpleSelect'
 import editModel from './editModel'
@@ -190,34 +190,5 @@ function handleAdd() {
   proxy.$refs.editModelRef.show()
 }
 /** 修改按钮操作 */
-function handleUpdate(row) {
-  reset()
-  const supplierId = row.supplierId || ids.value
-  getSupplier(supplierId).then((response) => {
-    form.value = response.data
-    open.value = true
-    title.value = '修改供应商'
-  })
-}
-
-/** 提交按钮 */
-function submitForm() {
-  proxy.$refs['formRef'].validate((valid) => {
-    if (valid) {
-      if (form.value.supplierId != null) {
-        updateSupplier(form.value).then((response) => {
-          proxy.$modal.msgSuccess('修改成功')
-          open.value = false
-          getList()
-        })
-      } else {
-        addSupplier(form.value).then((response) => {
-          proxy.$modal.msgSuccess('新增成功')
-          open.value = false
-          getList()
-        })
-      }
-    }
-  })
-}
+function handleUpdate(row) {}
 </script>

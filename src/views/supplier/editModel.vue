@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :title="title" v-model="open" v-if="open" width="500px" append-to-body>
+  <el-dialog :title="title" v-model="open" width="500px" append-to-body>
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100">
       <el-form-item label="供应商名称" prop="supplierName">
         <el-input v-model="form.supplierName" placeholder="请输入供应商名称" />
@@ -72,7 +72,7 @@ const rules = {
 function show(row) {
   if (row) {
     console.log(row)
-    form.value = row
+    // form.value = row
   }
   open.value = true
 }

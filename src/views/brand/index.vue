@@ -67,20 +67,9 @@
       <el-table-column label="品牌负责人" align="center" prop="brandResponsibleUserList">
         <template #default="scope">
           <div>
-            <el-button
-              size="small"
-              type="primary"
-              link
-              v-if="scope.row.brandResponsibleUserList.length"
-              @click="changeBrandResponsibleUser(scope.row, 1)"
-            >
-              <span v-for="(item, index) in scope.row.brandResponsibleUserList" :key="index">
-                {{ item.nickName }}{{ index < scope.row.brandResponsibleUserList.length - 1 ? '，' : '' }}
-              </span>
-            </el-button>
-            <el-button v-else size="small" type="primary" link @click="changeBrandResponsibleUser(scope.row, 1)">
-              配置品牌负责人
-            </el-button>
+            <div v-for="(item, index) in scope.row.brandResponsibleUserList" :key="index">
+              {{ item.nickName }}
+            </div>
           </div>
         </template>
       </el-table-column>
@@ -88,20 +77,11 @@
         <template #default="scope">
           <div>
             <div>
-              <el-button
-                size="small"
-                type="primary"
-                link
-                v-if="scope.row.brandSupplierList.length"
-                @click="changeBrandResponsibleUser(scope.row, 2)"
-              >
-                <span v-for="(item, index) in scope.row.brandSupplierList" :key="index">
-                  {{ item.supplierName }}{{ index < scope.row.brandSupplierList.length - 1 ? '，' : '' }}
-                </span>
-              </el-button>
-              <el-button v-else size="small" type="primary" link @click="changeBrandResponsibleUser(scope.row, 2)">
-                管理供应商
-              </el-button>
+              <div v-for="(item, index) in scope.row.brandSupplierList" :key="index">
+                <el-button size="small" link>
+                  {{ item.supplierName }}
+                </el-button>
+              </div>
             </div>
           </div>
         </template>
@@ -116,9 +96,15 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="100" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template v-slot="scope">
-          <el-button size="small" type="primary" link icon="edit" @click="handleUpdate(scope.row)">编辑</el-button>
+          <el-button size="small" type="primary" plain @click="changeBrandResponsibleUser(scope.row, 1)">
+            分配负责人
+          </el-button>
+          <el-button size="small" type="primary" plain @click="changeBrandResponsibleUser(scope.row, 2)">
+            关联供应商
+          </el-button>
+          <el-button size="small" type="primary" icon="edit" @click="handleUpdate(scope.row)">编辑</el-button>
         </template>
       </el-table-column>
     </el-table>
