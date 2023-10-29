@@ -1,21 +1,45 @@
 <template>
   <div class="app-container supplier">
     <el-form :model="queryParams" ref="queryFormRef" :inline="true" v-show="showSearch">
-      <el-form-item label="供应商ID" prop="supplierId">
-        <el-input
+      <el-form-item label="供应商" prop="supplierId">
+        <simple-select
           v-model="queryParams.supplierId"
-          placeholder="请输入供应商ID"
+          :remoteFunction="searchSupplier"
+          searchKey="supplierName"
+          searchValue="supplierId"
+          placeholder="请输入供应商名称"
+        />
+      </el-form-item>
+      <el-form-item label="纳税人识别号" prop="supplierTaxId">
+        <el-input
+          v-model="queryParams.supplierTaxId"
+          placeholder="请输入纳税人识别号"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="供应商名称" prop="supplierName">
+      <el-form-item label="联系电话" prop="supplierContactPhone">
         <el-input
-          v-model="queryParams.supplierName"
-          placeholder="请输入供应商名称"
+          v-model="queryParams.supplierContactPhone"
+          placeholder="请输入联系电话"
           clearable
           @keyup.enter.native="handleQuery"
         />
+      </el-form-item>
+      <el-form-item label="品牌" prop="brandId">
+        <simple-select
+          v-model="queryParams.brandId"
+          :remoteFunction="searchBrand"
+          searchKey="brandName"
+          searchValue="brandId"
+          placeholder="请输入品牌名称"
+        />
+      </el-form-item>
+      <el-form-item label="是否启用" prop="supplierEnable">
+        <el-select v-model="queryParams.supplierEnable" placeholder="请选择是否启用">
+          <el-option label="是" :value="1"></el-option>
+          <el-option label="否" :value="0"></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
@@ -32,8 +56,41 @@
 
     <el-table v-loading="loading" :data="supplierList">
       <!-- <el-table-column type="selection" width="55" align="center" /> -->
-      <el-table-column label="供应商ID" align="center" prop="supplierId" />
       <el-table-column label="供应商名称" align="center" prop="supplierName" />
+      <el-table-column label="纳税人识别号" align="center" prop="supplierTaxId" />
+      <el-table-column label="联系电话" align="center" prop="supplierContactPhone" />
+      <el-table-column label="可供品牌" align="center" prop="brandList">
+        <template #default="scope">
+          <div>
+            <div>
+              <el-button
+                size="small"
+                type="primary"
+                link
+                v-if="scope.row.brandList.length"
+                @click="changeBrandResponsibleUser(scope.row, 2)"
+              >
+                <span v-for="(item, index) in scope.row.brandList" :key="index">
+                  {{ item.brandName }}{{ index < scope.row.brandList.length - 1 ? '，' : '' }}
+                </span>
+              </el-button>
+              <el-button v-else size="small" type="primary" link @click="changeBrandResponsibleUser(scope.row, 2)">
+                关联品牌
+              </el-button>
+            </div>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="是否启用" width="90">
+        <template #default="scope">
+          <el-switch
+            v-model="scope.row.supplierEnable"
+            :active-value="1"
+            :inactive-value="0"
+            @change="changeSwitch(scope.row)"
+          />
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template v-slot="scope">
           <el-button size="small" type="primary" link icon="edit" @click="handleUpdate(scope.row)">修改</el-button>
@@ -50,22 +107,15 @@
     />
 
     <!-- 添加或修改供应商管理对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="formRef" :model="form" :rules="rules">
-        <el-form-item label="供应商名称" prop="supplierName">
-          <el-input v-model="form.supplierName" placeholder="请输入供应商名称" />
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer flex-center">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
-    </el-dialog>
+    <!-- <editModel :title="title" ref="editModelRef" @submit="getList"></editModel> -->
   </div>
 </template>
 
 <script setup>
 import { listSupplier, getSupplier, addSupplier, updateSupplier } from '@/api/supplier/supplier'
+import { searchUser, searchSupplier, searchBrand } from '@/api/brand'
+import SimpleSelect from '@/components/SimpleSelect'
+import editModel from './editModel'
 
 const { proxy } = getCurrentInstance()
 // 遮罩层
@@ -136,9 +186,8 @@ function resetQuery() {
 }
 /** 新增按钮操作 */
 function handleAdd() {
-  reset()
-  open.value = true
-  title.value = '添加供应商'
+  title.value = '新增供应商'
+  proxy.$refs.editModelRef.show()
 }
 /** 修改按钮操作 */
 function handleUpdate(row) {

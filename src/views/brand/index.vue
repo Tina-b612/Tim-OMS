@@ -163,8 +163,8 @@ import { listBrand, updateBrand, listBrandUpdate, searchUser, searchSupplier } f
 
 import defaultLogo from '@/assets/images/default.png'
 import SimpleSelect from '@/components/SimpleSelect'
-import editBrandModel from './editBrandModel.vue'
-import transferModel from './transferModel.vue'
+import editBrandModel from './editBrandModel'
+import transferModel from './transferModel'
 import { ref } from 'vue'
 const base = import.meta.env.VITE_APP_BASE_API
 
