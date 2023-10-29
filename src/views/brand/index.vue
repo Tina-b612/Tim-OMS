@@ -35,7 +35,12 @@
           placeholder="请输入供应商名称"
         />
       </el-form-item>
-      <el-form-item label="是否启用" prop="brandEnable"></el-form-item>
+      <el-form-item label="是否启用" prop="brandEnable">
+        <el-select v-model="queryParams.brandEnable" placeholder="请选择是否启用">
+          <el-option label="是" :value="1"></el-option>
+          <el-option label="否" :value="0"></el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -45,7 +50,7 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
-        <el-button type="success" plain icon="UserFilled" @click="multipleBrandUpdate">批量分配负责人</el-button>
+        <!-- <el-button type="success" plain icon="UserFilled" @click="multipleBrandUpdate">批量分配负责人</el-button> -->
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
@@ -55,31 +60,60 @@
       <el-table-column label="品牌名称" width="120" align="center" prop="brandName" />
       <el-table-column label="品牌logo" width="120" align="center" prop="logo">
         <template #default="scope">
-          <img class="loge-image" :src="scope.row.brandLogo || defaultLogo" alt="" />
+          <img class="loge-image" :src="base + scope.row.brandLogo || defaultLogo" alt="" />
         </template>
       </el-table-column>
       <el-table-column label="国家" width="120" align="center" prop="brandCountry" />
       <el-table-column label="品牌负责人" align="center" prop="brandResponsibleUserList">
         <template #default="scope">
           <div>
-            <span v-for="(item, index) in scope.row.brandResponsibleUserList" :key="index">
-              {{ item.nickName + '，' }}
-            </span>
+            <el-button
+              size="small"
+              type="primary"
+              link
+              v-if="scope.row.brandResponsibleUserList.length"
+              @click="changeBrandResponsibleUser(scope.row, 1)"
+            >
+              <span v-for="(item, index) in scope.row.brandResponsibleUserList" :key="index">
+                {{ item.nickName }}{{ index < scope.row.brandResponsibleUserList.length - 1 ? '，' : '' }}
+              </span>
+            </el-button>
+            <el-button v-else size="small" type="primary" link @click="changeBrandResponsibleUser(scope.row, 1)">
+              配置品牌负责人
+            </el-button>
           </div>
         </template>
       </el-table-column>
       <el-table-column label="供应商" align="center" prop="brandSupplierList">
         <template #default="scope">
           <div>
-            <span v-for="(item, index) in scope.row.brandSupplierList" :key="index">
-              {{ item.supplierName + '，' }}
-            </span>
+            <div>
+              <el-button
+                size="small"
+                type="primary"
+                link
+                v-if="scope.row.brandSupplierList.length"
+                @click="changeBrandResponsibleUser(scope.row, 2)"
+              >
+                <span v-for="(item, index) in scope.row.brandSupplierList" :key="index">
+                  {{ item.supplierName }}{{ index < scope.row.brandSupplierList.length - 1 ? '，' : '' }}
+                </span>
+              </el-button>
+              <el-button v-else size="small" type="primary" link @click="changeBrandResponsibleUser(scope.row, 2)">
+                管理供应商
+              </el-button>
+            </div>
           </div>
         </template>
       </el-table-column>
       <el-table-column label="是否启用" width="90">
         <template #default="scope">
-          <el-switch v-model="scope.row.brandEnable" :active-value="1" :inactive-value="0" />
+          <el-switch
+            v-model="scope.row.brandEnable"
+            :active-value="1"
+            :inactive-value="0"
+            @change="changeSwitch(scope.row)"
+          />
         </template>
       </el-table-column>
       <el-table-column label="操作" width="100" align="center" class-name="small-padding fixed-width">
@@ -97,7 +131,11 @@
       @pagination="getList"
     />
 
+    <!-- 编辑品牌 -->
     <editBrandModel :title="title" ref="editBrandModelRef" @submit="getList"></editBrandModel>
+
+    <!-- 分配 -->
+    <transferModel ref="transferModelRef" :transferProps="transferProps" @submit="getList"></transferModel>
 
     <!-- 批量分配负责人对话框 -->
     <el-dialog title="批量分配负责人" v-model="responsibleOpen" width="500px" append-to-body>
@@ -121,11 +159,14 @@
 </template>
 
 <script setup>
-import { listBrand, getBrand, listBrandUpdate, searchUser, searchSupplier } from '@/api/brand'
+import { listBrand, updateBrand, listBrandUpdate, searchUser, searchSupplier } from '@/api/brand'
 
 import defaultLogo from '@/assets/images/default.png'
 import SimpleSelect from '@/components/SimpleSelect'
 import editBrandModel from './editBrandModel.vue'
+import transferModel from './transferModel.vue'
+import { ref } from 'vue'
+const base = import.meta.env.VITE_APP_BASE_API
 
 const { proxy } = getCurrentInstance()
 // 遮罩层
@@ -140,6 +181,7 @@ const total = ref(0)
 const brandList = ref([])
 // 弹出层标题
 const title = ref('')
+const transferTitle = ref('')
 // 是否显示弹出层
 const open = ref(false)
 // 查询参数
@@ -153,6 +195,7 @@ const queryParams = ref({
 })
 // 表单参数
 const form = ref({})
+const transferProps = ref({})
 
 const multipleSelection = ref([])
 
@@ -185,20 +228,51 @@ function handleAdd() {
   title.value = '新增品牌'
   proxy.$refs.editBrandModelRef.show()
 }
-/** 修改按钮操作 */
-function handleUpdate(row) {
-  const brandId = row.brandId || ids.value
-  getBrand(brandId).then((response) => {
-    form.value = response.data
-    open.value = true
-    title.value = '编辑品牌'
+function changeSwitch(row) {
+  updateBrand(row).then((response) => {
+    proxy.$modal.msgSuccess('修改成功')
+    getList()
   })
 }
+/** 修改按钮操作 */
+function handleUpdate(row) {
+  title.value = '编辑品牌'
+  proxy.$refs.editBrandModelRef.show({ ...row })
+}
 
+// 修改品牌负责人
+function changeBrandResponsibleUser(row, type) {
+  if (type === 1) {
+    transferProps.value = {
+      title: '分配品牌负责人',
+      titles: ['待分配', '品牌负责人'],
+      props: {
+        key: 'userId',
+        label: 'nickName',
+      },
+      filterPlaceholder: '负责人名字',
+      data: userList,
+    }
+  }
+  if (type === 2) {
+    transferProps.value = {
+      title: '分配品牌供应商',
+      titles: ['待分配', '品牌供应商'],
+      props: {
+        key: 'supplierId',
+        label: 'supplierName',
+      },
+      filterPlaceholder: '供应商名称',
+      data: supplierList,
+    }
+  }
+  proxy.$refs.transferModelRef.show({ ...row }, type)
+}
+// 全选
 function handleSelectionChange(val) {
   multipleSelection.value = val
 }
-
+// 批量分配负责人
 function multipleBrandUpdate() {
   if (multipleSelection.value.length) {
     responsibleOpen.value = true
@@ -206,7 +280,7 @@ function multipleBrandUpdate() {
     proxy.$modal.msgError('请选择需分配的品牌')
   }
 }
-
+// 批量分配负责人
 function responsibleSubmitForm() {
   proxy.$modal.confirm('确认要批量分配这些品牌吗？').then(() => {
     listBrandUpdate({
@@ -220,11 +294,24 @@ function responsibleSubmitForm() {
     })
   })
 }
-
+// 取消批量分配负责人
 function responsibleCancel() {
   responsibleOpen.value = false
   responsibleForm.value = {}
 }
+// 获取所有用户/所有供应商
+const userList = ref([])
+const supplierList = ref([])
+
+function getInfo() {
+  searchUser().then((response) => {
+    userList.value = response
+  })
+  searchSupplier().then((response) => {
+    supplierList.value = response
+  })
+}
+getInfo()
 </script>
 <style lang="scss">
 .brand-list {

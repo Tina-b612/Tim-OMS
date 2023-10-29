@@ -4,8 +4,8 @@
       <el-form-item label="品牌名称" prop="brandName">
         <el-input v-model="form.brandName" placeholder="请输入品牌名称" />
       </el-form-item>
-      <el-form-item label="品牌logo" prop="logo">
-        <image-upload v-model="brandLogo" :limit="1" />
+      <el-form-item label="品牌logo" prop="brandLogo">
+        <image-upload v-model="form.brandLogo" :limit="1" />
       </el-form-item>
       <el-form-item label="国家" prop="brandCountry">
         <el-input v-model="form.brandCountry" placeholder="请输入国家" />
@@ -33,7 +33,7 @@ const props = defineProps({
 
 // 是否显示弹出层
 const open = ref(false)
-const brandLogo = ref(null)
+// const brandLogo = ref(null)
 // 表单参数
 const form = ref({
   brandEnable: 1,
@@ -43,7 +43,17 @@ const rules = {
   brandName: [{ required: true, message: '品牌名称不能为空', trigger: 'blur' }],
 }
 
-function show() {
+function show(row) {
+  if (row) {
+    console.log(row)
+    form.value = {
+      brandId: row.brandId,
+      brandName: row.brandName,
+      brandLogo: row.brandLogo,
+      brandCountry: row.brandCountry,
+      brandEnable: row.brandEnable,
+    }
+  }
   open.value = true
 }
 
@@ -51,7 +61,7 @@ function show() {
 function reset() {
   form.value = {
     brandName: null,
-    logo: null,
+    brandLogo: null,
     brandCountry: null,
     brandEnable: 1,
   }
@@ -68,7 +78,7 @@ function cancel() {
 function submitForm() {
   proxy.$refs['formRef'].validate((valid) => {
     if (valid) {
-      form.value.brandLogo = brandLogo.value
+      // form.value.brandLogo = brandLogo.value
       if (form.value.brandId != null) {
         updateBrand(form.value).then((response) => {
           proxy.$modal.msgSuccess('修改成功')

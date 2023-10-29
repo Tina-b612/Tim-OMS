@@ -142,7 +142,7 @@ function handleExceed() {
 // 上传成功回调
 function handleUploadSuccess(res, file) {
   if (res.code === 200) {
-    uploadList.value.push({ name: res.fileName, url: res.url })
+    uploadList.value.push({ name: res.fileName, url: res.fileName })
     uploadedSuccessfully()
   } else {
     number.value--
@@ -182,7 +182,7 @@ function handleUploadError() {
 
 // 预览
 function handlePictureCardPreview(file) {
-  dialogImageUrl.value = file.response.url
+  dialogImageUrl.value = file.url
   dialogVisible.value = true
 }
 

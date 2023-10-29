@@ -77,3 +77,21 @@ export function searchSupplier(query) {
     params: query,
   })
 }
+
+// 编辑品牌和供应商的关系
+export function updateBrandSupplier(data) {
+  return request({
+    url: '/brand_supplier',
+    method: 'put',
+    data: data,
+  })
+}
+
+// 编辑品牌和负责人的关系
+export function updateBrandUser(data) {
+  return request({
+    url: '/brand_user',
+    method: 'put',
+    data: data,
+  })
+}
