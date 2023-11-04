@@ -1,29 +1,22 @@
 <template>
-  <div class="app-container supplier">
+  <div class="app-container">
     <el-form :model="queryParams" ref="queryFormRef" :inline="true" v-show="showSearch">
-      <el-form-item label="供应商" prop="supplierId">
+      <el-form-item label="采购负责人" prop="inquiryPurchaseUserId">
         <simple-select
-          v-model="queryParams.supplierId"
-          :remoteFunction="searchSupplier"
-          searchKey="supplierName"
-          searchValue="supplierId"
-          placeholder="请输入供应商名称"
+          v-model="queryParams.brandResponsibleUserId"
+          :remoteFunction="searchUser"
+          searchKey="nickName"
+          searchValue="userId"
+          placeholder="请输入采购负责人名称"
         />
       </el-form-item>
-      <el-form-item label="纳税人识别号" prop="supplierTaxId">
-        <el-input
-          v-model="queryParams.supplierTaxId"
-          placeholder="请输入纳税人识别号"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="联系电话" prop="supplierContactPhone">
-        <el-input
-          v-model="queryParams.supplierContactPhone"
-          placeholder="请输入联系电话"
-          clearable
-          @keyup.enter.native="handleQuery"
+      <el-form-item label="销售负责人" prop="inquirySalesUserId">
+        <simple-select
+          v-model="queryParams.brandResponsibleUserId"
+          :remoteFunction="searchUser"
+          searchKey="nickName"
+          searchValue="userId"
+          placeholder="请输入采购负责人名称"
         />
       </el-form-item>
       <el-form-item label="品牌" prop="brandId">
@@ -35,11 +28,35 @@
           placeholder="请输入品牌名称"
         />
       </el-form-item>
-      <el-form-item label="是否启用" prop="supplierEnable">
-        <el-select v-model="queryParams.supplierEnable" placeholder="请选择是否启用">
-          <el-option label="是" :value="1"></el-option>
-          <el-option label="否" :value="0"></el-option>
-        </el-select>
+      <el-form-item label="询盘编号" prop="inquirySn">
+        <el-input
+          v-model="queryParams.inquirySn"
+          placeholder="请输入询盘编号"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="订单状态更新时间" prop="inquiryStateUpdateTime">
+        <el-date-picker
+          v-model="queryParams.inquiryStateUpdateTime"
+          style="width: 240px"
+          value-format="YYYY-MM-DD"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
+      </el-form-item>
+      <el-form-item label="订单创建时间" prop="inquiryCreateTime">
+        <el-date-picker
+          v-model="queryParams.inquiryCreateTime"
+          style="width: 240px"
+          value-format="YYYY-MM-DD"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
@@ -49,13 +66,12 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd">创建询盘</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="supplierList">
-      <!-- <el-table-column type="selection" width="55" align="center" /> -->
+    <el-table v-loading="loading" :data="inquiryList">
       <el-table-column label="供应商名称" align="center" prop="supplierName" />
       <el-table-column label="纳税人识别号" align="center" prop="supplierTaxId" />
       <el-table-column label="联系电话" align="center" prop="supplierContactPhone" />
@@ -67,7 +83,7 @@
         </template>
       </el-table-column>
       <el-table-column label="是否启用" width="90">
-        <template #default="scope">
+        <!-- <template #default="scope">
           <el-switch
             size="small"
             v-model="scope.row.supplierEnable"
@@ -75,7 +91,7 @@
             :inactive-value="0"
             @change="changeSwitch(scope.row)"
           />
-        </template>
+        </template> -->
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template v-slot="scope">
@@ -105,11 +121,12 @@
 </template>
 
 <script setup>
-import { listSupplier } from '@/api/supplier'
 import { searchUser, searchSupplier, searchBrand } from '@/api/brand'
+import { listInquiry, getInquiry, delInquiry, addInquiry, updateInquiry } from '@/api/inquiry'
 import SimpleSelect from '@/components/SimpleSelect'
 import editModel from './editModel'
 import transferModel from './transferModel'
+import { reactive } from 'vue'
 
 const { proxy } = getCurrentInstance()
 // 遮罩层
@@ -119,7 +136,7 @@ const showSearch = ref(true)
 // 总条数
 const total = ref(0)
 // 供应商管理表格数据
-const supplierList = ref([])
+const inquiryList = ref([])
 // 弹出层标题
 const title = ref('')
 // 是否显示弹出层
@@ -146,8 +163,8 @@ onMounted(() => {
 /** 查询供应商管理列表 */
 function getList() {
   loading.value = true
-  listSupplier(queryParams.value).then((response) => {
-    supplierList.value = response.rows
+  listInquiry(queryParams.value).then((response) => {
+    inquiryList.value = response.rows
     total.value = response.total
     loading.value = false
   })
@@ -210,5 +227,5 @@ function getInfo() {
     brandList.value = response
   })
 }
-getInfo()
+// getInfo()
 </script>

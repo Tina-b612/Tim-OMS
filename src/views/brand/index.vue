@@ -56,14 +56,14 @@
     </el-row>
 
     <el-table v-loading="loading" :data="brandList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="35" />
-      <el-table-column label="品牌名称" width="120" align="center" prop="brandName" />
+      <!-- <el-table-column type="selection" width="35" /> -->
+      <el-table-column label="品牌名称" width="150" align="center" prop="brandName" />
       <el-table-column label="品牌logo" width="120" align="center" prop="logo">
         <template #default="scope">
           <img class="loge-image" :src="base + scope.row.brandLogo || defaultLogo" alt="" />
         </template>
       </el-table-column>
-      <el-table-column label="国家" width="120" align="center" prop="brandCountry" />
+      <el-table-column label="国家" align="center" prop="brandCountry" />
       <el-table-column label="品牌负责人" align="center" prop="brandResponsibleUserList">
         <template #default="scope">
           <div>
@@ -78,7 +78,7 @@
           <div>
             <div>
               <div v-for="(item, index) in scope.row.brandSupplierList" :key="index">
-                <el-button size="small" link>
+                <el-button link @click="handleLook(item)">
                   {{ item.supplierName }}
                 </el-button>
               </div>
@@ -89,6 +89,7 @@
       <el-table-column label="是否启用" width="90">
         <template #default="scope">
           <el-switch
+            size="small"
             v-model="scope.row.brandEnable"
             :active-value="1"
             :inactive-value="0"
@@ -96,15 +97,17 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="140" class-name="small-padding fixed-width">
         <template v-slot="scope">
-          <el-button size="small" type="primary" plain @click="changeBrandResponsibleUser(scope.row, 1)">
-            分配负责人
-          </el-button>
-          <el-button size="small" type="primary" plain @click="changeBrandResponsibleUser(scope.row, 2)">
-            关联供应商
-          </el-button>
-          <el-button size="small" type="primary" icon="edit" @click="handleUpdate(scope.row)">编辑</el-button>
+          <el-tooltip content="编辑" placement="top">
+            <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"></el-button>
+          </el-tooltip>
+          <el-tooltip content="分配负责人" placement="top">
+            <el-button link type="primary" icon="Avatar" @click="changeBrandResponsibleUser(scope.row, 1)"></el-button>
+          </el-tooltip>
+          <el-tooltip content="关联供应商" placement="top">
+            <el-button link type="primary" icon="Switch" @click="changeBrandResponsibleUser(scope.row, 2)"></el-button>
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
@@ -122,6 +125,9 @@
 
     <!-- 分配 -->
     <transferModel ref="transferModelRef" :transferProps="transferProps" @submit="getList"></transferModel>
+
+    <!-- 供应商详情 -->
+    <supplierModel ref="supplierModelRef"></supplierModel>
 
     <!-- 批量分配负责人对话框 -->
     <el-dialog title="批量分配负责人" v-model="responsibleOpen" width="500px" append-to-body>
@@ -151,6 +157,7 @@ import defaultLogo from '@/assets/images/default.png'
 import SimpleSelect from '@/components/SimpleSelect'
 import editBrandModel from './editBrandModel'
 import transferModel from './transferModel'
+import supplierModel from './supplierModel'
 import { ref } from 'vue'
 const base = import.meta.env.VITE_APP_BASE_API
 
@@ -182,7 +189,7 @@ const queryParams = ref({
 // 表单参数
 const form = ref({})
 const transferProps = ref({})
-
+const supplierModelProps = ref({})
 const multipleSelection = ref([])
 
 onMounted(() => {
@@ -225,8 +232,12 @@ function handleUpdate(row) {
   title.value = '编辑品牌'
   proxy.$refs.editBrandModelRef.show({ ...row })
 }
+// 查看供应商详情
+function handleLook(row) {
+  proxy.$refs.supplierModelRef.show({ ...row })
+}
 
-// 修改品牌负责人
+// 修改品牌负责人/供应商
 function changeBrandResponsibleUser(row, type) {
   if (type === 1) {
     transferProps.value = {
@@ -242,8 +253,8 @@ function changeBrandResponsibleUser(row, type) {
   }
   if (type === 2) {
     transferProps.value = {
-      title: '分配品牌供应商',
-      titles: ['待分配', '品牌供应商'],
+      title: '关联供应商',
+      titles: ['待分配', '已关联供应商'],
       props: {
         key: 'supplierId',
         label: 'supplierName',
