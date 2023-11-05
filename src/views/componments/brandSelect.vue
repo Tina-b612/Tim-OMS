@@ -12,7 +12,7 @@
     :remote-method="handleSearchBrandList"
     @change="brandSelectChange"
     :loading="selectLoading"
-    :disabled="orderState == 5 || orderState == 7"
+    :disabled="disabled"
   >
     <el-option
       class="flex-center-between"
@@ -45,6 +45,7 @@ const props = defineProps({
     type: [String, Number],
     default: 1,
   },
+  disabled: Boolean,
 })
 const selectLoading = ref(false)
 const brandSearchList = ref([])

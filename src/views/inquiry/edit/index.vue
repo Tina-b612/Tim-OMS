@@ -13,14 +13,18 @@
               <el-link type="warning">{{ timingTimeStr }}</el-link>
             </span>
           </div>
-          <div class="right">
-            <el-button v-show="[0, 6].includes(inquiryStatus)" type="primary" @click="submitForm(6)">
-              编辑询价单
-            </el-button>
-            <el-button v-show="[0, 6].includes(inquiryStatus)" type="success" @click="submitForm(1)">
-              发送询价
-            </el-button>
-            <el-button v-show="[0, 6].includes(inquiryStatus)" type="danger" @click="cancel()">取消</el-button>
+          <div class="right" v-show="pageEdit">
+            <el-button type="success" @click="handleSave">保存</el-button>
+            <el-button @click="handleEditCancle">取消</el-button>
+          </div>
+          <div class="right" v-show="!pageEdit">
+            <el-button type="success" @click="pageEdit = true">编辑</el-button>
+            <!-- <el-button type="success" @click="submitForm(0)">
+              保存为草稿
+            </el-button> -->
+            <el-button type="success" @click="submitForm(1)">发送询价</el-button>
+            <el-button type="danger">取消</el-button>
+
             <div class="ml20">
               <el-button type="primary" icon="Back" circle size="small"></el-button>
               <span style="margin: 0 5px">1/15</span>
@@ -33,7 +37,7 @@
         <el-form ref="orderRef" :model="form" :rules="rules" label-width="80px" :disabled="false">
           <div class="mt20">
             <el-form-item label="品牌" prop="rtBrand" width="600px" v-if="![5, 7].includes(inquiryStatus)">
-              <brandSelect v-model="form.rtBrand" inquiryStatus></brandSelect>
+              <brandSelect v-model="form.rtBrand" inquiryStatus disabled></brandSelect>
             </el-form-item>
             <el-form-item label="询盘描述" prop="inquiryDescription" v-if="![5, 7].includes(inquiryStatus)">
               <el-input
@@ -41,7 +45,7 @@
                 type="textarea"
                 v-model="form.inquiryDescription"
                 placeholder="请输入询盘描述"
-                :disabled="inquiryStatus == 5 || inquiryStatus == 7"
+                :disabled="!pageEdit"
               />
             </el-form-item>
           </div>
@@ -59,18 +63,30 @@
                 <el-table-column prop="productName" label="型号*">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.productName'" :rules="valueRule">
-                      <el-input v-model="scope.row.productName" placeholder="请输入产品型号"></el-input>
+                      <el-input
+                        v-model="scope.row.productName"
+                        placeholder="请输入产品型号"
+                        :disabled="!scope.row.edit"
+                      ></el-input>
                     </el-form-item>
                   </template>
                 </el-table-column>
                 <el-table-column prop="productDescription" label="产品描述" :show-overflow-tooltip="true">
                   <template #default="scope">
-                    <el-input v-model="scope.row.productDescription" placeholder="请输入产品描述"></el-input>
+                    <el-input
+                      v-model="scope.row.productDescription"
+                      placeholder="请输入产品描述"
+                      :disabled="!scope.row.edit"
+                    ></el-input>
                   </template>
                 </el-table-column>
                 <el-table-column prop="productQuantity" label="数量">
                   <template #default="scope">
-                    <el-input-number v-model="scope.row.productQuantity" :min="1"></el-input-number>
+                    <el-input-number
+                      v-model="scope.row.productQuantity"
+                      :min="1"
+                      :disabled="!scope.row.edit"
+                    ></el-input-number>
                   </template>
                 </el-table-column>
                 <el-table-column prop="salesFileList" label="销售附件">
@@ -82,6 +98,7 @@
                       :headers="headers"
                       accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
                       :on-success="handleUploadSuccess"
+                      v-show="scope.row.edit"
                     >
                       <el-button type="primary">上传附件</el-button>
                     </el-upload>
@@ -91,16 +108,25 @@
                   v-if="inquiryStatus != 5 && inquiryStatus != 7"
                   label="操作"
                   align="center"
-                  class-name="small-padding fixed-width"
-                  width="80"
+                  width="150"
                 >
                   <template #default="scope">
+                    <el-tooltip content="编辑" placement="top" v-if="scope.row.productId">
+                      <el-button
+                        link
+                        type="primary"
+                        icon="Edit"
+                        :disabled="!pageEdit || !scope.row.btnEdit"
+                        @click="handleEditProduct(scope.$index)"
+                      ></el-button>
+                    </el-tooltip>
                     <el-tooltip content="删除" placement="top" v-if="scope.row.roleId !== 1">
                       <el-button
                         link
                         type="primary"
                         icon="Delete"
-                        @click="handleDeleteOrderItem(scope.$index)"
+                        :disabled="!pageEdit || !scope.row.btnEdit"
+                        @click="handleDeleteOrderItem(scope.row, scope.$index)"
                       ></el-button>
                     </el-tooltip>
                   </template>
@@ -110,11 +136,7 @@
           </div>
         </el-form>
         <el-row class="bgWhite flex-center-right btn-box">
-          <el-button v-show="[0, 6].includes(inquiryStatus)" type="success" @click="submitForm(0)">
-            保存为草稿
-          </el-button>
-          <el-button v-show="[0, 6].includes(inquiryStatus)" type="success" @click="submitForm(1)">发送询价</el-button>
-          <el-button v-show="[0, 6].includes(inquiryStatus)" type="primary" @click="handleAddProduct()">
+          <el-button v-show="pageEdit" :disabled="btnAddDiabled" type="primary" @click="handleAddProduct()">
             添加产品
           </el-button>
         </el-row>
@@ -129,7 +151,8 @@
 </template>
 
 <script setup name="Detail">
-import { addInquiry, getInquiry } from '@/api/inquiry'
+import { addInquiry, getInquiry, updateInquiry } from '@/api/inquiry'
+import { updateProduct, delProduct } from '@/api/product'
 import { onBeforeMount, reactive } from 'vue'
 import orderMessage from './orderMessage'
 import omsMessage from '@/views/componments/omsMessage'
@@ -145,9 +168,15 @@ const userHasRole = ref(false)
 const base = import.meta.env.VITE_APP_BASE_API
 const headers = ref({ Authorization: 'Bearer ' + getToken() })
 const timingTimeStr = ref('')
+const pageEdit = ref(false)
+const btnAddDiabled = ref(false)
+const updatedProductId = ref(null)
+const originData = ref({})
 
 // 产品默认对象
 const defaulfItem = {
+  edit: true,
+  btnEdit: true,
   productName: null, // 型号
   productDescription: '', // 产品描述
   productQuantity: 1, // 采购数量
@@ -174,40 +203,47 @@ const { form, rules, valueRule } = toRefs(data)
 onBeforeMount(() => {
   userHasRole.value = proxy.$auth.hasRoleOr(['admin', 'purchase'])
   if (inquiryId) {
-    getInquiry(inquiryId).then((res) => {
+    getInfo()
+  }
+})
+// 获取当前询盘信息
+function getInfo() {
+  getInquiry(inquiryId).then((res) => {
+    nextTick(() => {
+      let data = res.data
+      inquiryStatus.value = data.inquiryStatus
+      // canChange.value = proxy.$auth.hasRoleOr(['admin', 'common']) && [1, 2, 3, 4, 6, 7].includes(data.inquiryStatus)
+
+      // brandSearchList.value.push(data.rtBrand)
+      if (data.productList) {
+        data.productList = data.productList.map((item) => {
+          item.edit = false
+          item.btnEdit = true
+          // if (item.purchasePrice) {
+          //   totalPrice.value = totalPrice.value + item.purchasePrice * item.quantity
+          // }
+          // item.model = {
+          //   modelId: item.modelId,
+          //   modelName: item.modelName,
+          // }
+          // item.supplier = {
+          //   supplierId: item.supplierId,
+          //   supplierName: item.supplierName,
+          // }
+          return item
+        })
+      }
+
       nextTick(() => {
-        let data = res.data
-        inquiryStatus.value = data.inquiryStatus
-        // canChange.value = proxy.$auth.hasRoleOr(['admin', 'common']) && [1, 2, 3, 4, 6, 7].includes(data.inquiryStatus)
-
-        // brandSearchList.value.push(data.rtBrand)
-        // if (data.productList) {
-        //   data.productList = data.productList.map((item) => {
-        //     if (item.purchasePrice) {
-        //       totalPrice.value = totalPrice.value + item.purchasePrice * item.quantity
-        //     }
-        //     item.model = {
-        //       modelId: item.modelId,
-        //       modelName: item.modelName,
-        //     }
-        //     item.supplier = {
-        //       supplierId: item.supplierId,
-        //       supplierName: item.supplierName,
-        //     }
-        //     return item
-        //   })
-        // }
-
-        nextTick(() => {
-          form.value = data
-          setInterval(() => {
-            timingTimeStr.value = timingTime(form.value.inquiryStatusUpdateTime)
-          })
+        originData.value = data
+        form.value = deepClone(originData.value)
+        setInterval(() => {
+          timingTimeStr.value = timingTime(form.value.inquiryStatusUpdateTime)
         })
       })
     })
-  }
-})
+  })
+}
 // 当前状态等待时长
 function timingTime(start) {
   let startTime = new Date(start).getTime()
@@ -224,17 +260,28 @@ function timingTime(start) {
 }
 function handleAddProduct() {
   form.value.productList.push(deepClone(defaulfItem))
+  form.value.productList = form.value.productList.map((item) => {
+    if (item.productId) {
+      item.btnEdit = false
+    }
+    return item
+  })
 }
 
 //删除型号
-function handleDeleteOrderItem(index) {
+function handleDeleteOrderItem(item, index) {
   proxy.$modal
-    .confirm('是否确认删除序号为"' + (index + 1) + '"产品?')
+    .confirm('当前操作不可恢复，是否确认删除序号为"' + (index + 1) + '"产品?')
     .then(function () {
-      form.value.productList.splice(index, 1)
-    })
-    .then(() => {
-      proxy.$modal.msgSuccess('删除成功')
+      if (item.productId) {
+        delProduct(item.productId).then((res) => {
+          proxy.$modal.msgSuccess('删除成功')
+          getInfo()
+        })
+      } else {
+        form.value.productList.splice(index, 1)
+        proxy.$modal.msgSuccess('删除成功')
+      }
     })
     .catch(() => {})
 }
@@ -267,6 +314,44 @@ function handleUploadSuccess(res) {
     proxy.$modal.msgError(res.msg)
   }
 }
+
+// 编辑产品
+function handleEditProduct(index) {
+  updatedProductId.value = form.value.productList[index].productId
+  for (let i = 0; i < form.value.productList.length; i++) {
+    const product = form.value.productList[i]
+    if (i === index) {
+      product.edit = true
+    }
+    product.btnEdit = false
+    btnAddDiabled.value = true
+  }
+}
+// 保存编辑
+function handleSave() {
+  proxy.$refs['orderRef'].validate((valid) => {
+    if (valid) {
+      form.value.inquiryStatus = inquiryStatus
+      updateInquiry({
+        inquiryId: form.value.inquiryId,
+        updatedProductId: updatedProductId.value,
+        productList: form.value.productList,
+        inquiryDescription: form.value.inquiryDescription,
+      }).then((response) => {
+        proxy.$modal.msgSuccess('保存成功')
+        pageEdit.value = false
+        btnAddDiabled.value = false
+        getInfo()
+      })
+    }
+  })
+}
+
+function handleEditCancle() {
+  pageEdit.value = false
+  btnAddDiabled.value = false
+  form.value = deepClone(originData.value)
+}
 </script>
 
 <style lang="scss">
@@ -280,7 +365,7 @@ function handleUploadSuccess(res) {
   .productList {
     .cell {
       padding: 0 4px 2px;
-      overflow: visible;
+      // overflow: visible;/
     }
   }
   .totalPrice {
