@@ -89,13 +89,13 @@ const userName = useUserStore().name
 const avatar = useUserStore().avatar
 console.log(userName)
 const props = defineProps({
-  purchaseId: null,
+  id: null,
 })
 const form = ref({})
 const msgList = ref([])
 
 function submitMsg() {
-  pushChat({ ...form.value, purchaseId: props.purchaseId }).then((res) => {
+  pushChat({ ...form.value, inquiryId: props.id, chatType: 1 }).then((res) => {
     form.value = {
       content: '',
       chatAttachmentList: [],
@@ -112,8 +112,9 @@ function enterSubmit(e) {
   }
 }
 function getChatList() {
-  chatList({ purchaseId: props.purchaseId }).then((res) => {
-    msgList.value = res ? res.reverse() : []
+  chatList({ inquiryId: props.id, chatType: 1 }).then((res) => {
+    msgList.value = res.rows
+    console.log(msgList)
     nextTick(() => {
       let boxHeight = proxy.$refs['msgWarpRef'].$el.clientHeight
       let listHeight = proxy.$refs['msgListRef'].clientHeight

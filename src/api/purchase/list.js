@@ -97,10 +97,10 @@ export function pushChat(data) {
   })
 }
 
-// 发送消息
+// 获取消息
 export function chatList(query) {
   return request({
-    url: '/chat/listNoPage',
+    url: '/chat/list',
     method: 'get',
     params: query,
   })

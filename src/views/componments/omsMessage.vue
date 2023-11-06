@@ -38,11 +38,11 @@ const { proxy } = getCurrentInstance()
 const msgList = ref([])
 
 function getChatList() {
-  chatList().then((res) => {
-    msgList.value = res || []
+  chatList({ chatType: 1 }).then((res) => {
+    msgList.value = res.rows
   })
 }
-// getChatList()
+getChatList()
 // const timeout = setInterval(() => {
 //   chatList()
 //     .then((res) => {

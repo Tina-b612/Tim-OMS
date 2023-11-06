@@ -98,9 +98,9 @@
                       :headers="headers"
                       accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
                       :on-success="handleUploadSuccess"
-                      v-show="scope.row.edit"
+                      :on-preview="handleFilePreview"
                     >
-                      <el-button type="primary">上传附件</el-button>
+                      <el-button type="primary" :disabled="!scope.row.edit">上传附件</el-button>
                     </el-upload>
                   </template>
                 </el-table-column>
@@ -142,11 +142,14 @@
         </el-row>
       </el-main>
       <el-aside class="message-containar">
-        <orderMessage v-if="form.purchaseId" :purchaseId="form.purchaseId"></orderMessage>
+        <orderMessage :id="inquiryId"></orderMessage>
         <!-- 消息面板 -->
-        <omsMessage v-else></omsMessage>
+        <!-- <omsMessage v-else></omsMessage> -->
       </el-aside>
     </el-container>
+    <!-- <el-dialog v-model="dialogVisible">
+      <img w-full :src="dialogImageUrl" alt="Preview Image" />
+    </el-dialog> -->
   </div>
 </template>
 
@@ -186,7 +189,7 @@ const defaulfItem = {
 const originForm = {
   rtBrand: null,
   inquiryDescription: '',
-  productList: [defaulfItem],
+  productList: [],
 }
 
 const data = reactive({
@@ -209,37 +212,32 @@ onBeforeMount(() => {
 // 获取当前询盘信息
 function getInfo() {
   getInquiry(inquiryId).then((res) => {
+    let data = res.data
+    inquiryStatus.value = data.inquiryStatus
+    if (data.productList) {
+      data.productList = data.productList.map((item) => {
+        item.edit = false
+        item.btnEdit = true
+        // if (item.purchasePrice) {
+        //   totalPrice.value = totalPrice.value + item.purchasePrice * item.quantity
+        // }
+        // item.model = {
+        //   modelId: item.modelId,
+        //   modelName: item.modelName,
+        // }
+        // item.supplier = {
+        //   supplierId: item.supplierId,
+        //   supplierName: item.supplierName,
+        // }
+        return item
+      })
+    }
+
     nextTick(() => {
-      let data = res.data
-      inquiryStatus.value = data.inquiryStatus
-      // canChange.value = proxy.$auth.hasRoleOr(['admin', 'common']) && [1, 2, 3, 4, 6, 7].includes(data.inquiryStatus)
-
-      // brandSearchList.value.push(data.rtBrand)
-      if (data.productList) {
-        data.productList = data.productList.map((item) => {
-          item.edit = false
-          item.btnEdit = true
-          // if (item.purchasePrice) {
-          //   totalPrice.value = totalPrice.value + item.purchasePrice * item.quantity
-          // }
-          // item.model = {
-          //   modelId: item.modelId,
-          //   modelName: item.modelName,
-          // }
-          // item.supplier = {
-          //   supplierId: item.supplierId,
-          //   supplierName: item.supplierName,
-          // }
-          return item
-        })
-      }
-
-      nextTick(() => {
-        originData.value = data
-        form.value = deepClone(originData.value)
-        setInterval(() => {
-          timingTimeStr.value = timingTime(form.value.inquiryStatusUpdateTime)
-        })
+      originData.value = data
+      form.value = deepClone(originData.value)
+      setInterval(() => {
+        timingTimeStr.value = timingTime(form.value.inquiryStatusUpdateTime)
       })
     })
   })
@@ -314,7 +312,10 @@ function handleUploadSuccess(res) {
     proxy.$modal.msgError(res.msg)
   }
 }
-
+// 预览文件
+function handleFilePreview(uploadFile) {
+  window.open(uploadFile.url)
+}
 // 编辑产品
 function handleEditProduct(index) {
   updatedProductId.value = form.value.productList[index].productId
@@ -346,7 +347,7 @@ function handleSave() {
     }
   })
 }
-
+// 取消编辑
 function handleEditCancle() {
   pageEdit.value = false
   btnAddDiabled.value = false
