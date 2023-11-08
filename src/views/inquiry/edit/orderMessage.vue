@@ -3,35 +3,41 @@
     <el-container class="orderMsg-container">
       <!-- <el-header>Header</el-header> -->
       <el-main class="orderMsg-main" ref="msgWarpRef">
-        <div class="msg-list" ref="msgListRef">
-          <div :class="['msg-item', { self: item.userName === userName }]" v-for="item in msgList" :key="item.chatId">
-            <div class="sender">
-              <img class="avatar" v-if="item.avatar" :src="base + item.avatar" alt="" />
-              <el-icon v-else><Service /></el-icon>
-              <span>
-                {{ item.senderName || 'xxx' }}
-              </span>
-              <span>{{ item.creatTime }}</span>
-            </div>
-            <div class="chatAttachmentList fileList" v-if="item.chatAttachmentList">
-              <span class="mr10" v-for="file in item.chatAttachmentList">
-                <Document style="width: 1em; height: 1em; margin-right: 2px" />
-                <el-link
-                  type="primary"
-                  v-if="file.response"
-                  :href="base + (file.response.filePath || file.response.pathName)"
-                >
-                  {{ file.name }}
-                </el-link>
-              </span>
-            </div>
-            <div class="content">
-              <pre>{{ item.content }}</pre>
+        <el-scrollbar ref="scrollbarRef" style="height: 100%" @scroll="handleScroll">
+          <div class="msg-list" ref="msgListRef">
+            <div
+              :class="['msg-item', { self: item.chatSenderUserName === userName }]"
+              v-for="item in msgList"
+              :key="item.chatId"
+            >
+              <div class="sender">
+                <img class="avatar" v-if="item.avatar" :src="base + item.avatar" alt="" />
+                <el-icon v-else><ChatDotSquare /></el-icon>
+                <span>
+                  {{ item.chatSenderNickName || 'xxx' }}
+                </span>
+                <span>{{ item.chatCreateTime }}</span>
+              </div>
+              <div class="sysFileInfoList fileList" v-if="item.sysFileInfoList">
+                <span class="mr10" v-for="file in item.sysFileInfoList">
+                  <Document style="width: 1em; height: 1em; margin-right: 2px" />
+                  <el-link
+                    type="primary"
+                    v-if="file.response"
+                    :href="base + (file.response.filePath || file.response.pathName)"
+                  >
+                    {{ file.name }}
+                  </el-link>
+                </span>
+              </div>
+              <div class="content">
+                <pre>{{ item.content }}</pre>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="fileList" v-if="form.chatAttachmentList" ref="fileListRef">
-          <span class="mr20" v-for="item in form.chatAttachmentList">
+        </el-scrollbar>
+        <div class="fileList" v-if="form.sysFileInfoList" ref="fileListRef">
+          <span class="mr20" v-for="item in form.sysFileInfoList">
             <Document style="width: 1em; height: 1em; margin-right: 8px" />
             <el-link
               type="primary"
@@ -57,7 +63,7 @@
           </el-form-item>
           <el-row justify="end" class="mt10">
             <el-upload
-              v-model:file-list="form.chatAttachmentList"
+              v-model:file-list="form.sysFileInfoList"
               :action="base + '/system/info/add'"
               :limit="3"
               :headers="headers"
@@ -82,25 +88,28 @@ import { pushChat, chatList } from '@/api/purchase/list'
 import { getToken } from '@/utils/auth'
 import { nextTick, onMounted, reactive } from 'vue'
 import useUserStore from '@/store/modules/user'
+import { ElScrollbar } from 'element-plus'
 const headers = ref({ Authorization: 'Bearer ' + getToken() })
 const { proxy } = getCurrentInstance()
 const base = import.meta.env.VITE_APP_BASE_API
 const userName = useUserStore().name
-const avatar = useUserStore().avatar
-console.log(userName)
 const props = defineProps({
   id: null,
+  inquirySn: null,
 })
 const form = ref({})
 const msgList = ref([])
+let pageNum = 1
+let totalPage = 0
 
 function submitMsg() {
-  pushChat({ ...form.value, inquiryId: props.id, chatType: 1 }).then((res) => {
+  pushChat({ ...form.value, inquiryId: props.id, chatType: 1, inquirySn: props.inquirySn }).then((res) => {
     form.value = {
       content: '',
-      chatAttachmentList: [],
+      sysFileInfoList: [],
     }
-    getChatList()
+    pageNum = 1
+    getChatList('new')
   })
 }
 function enterSubmit(e) {
@@ -111,28 +120,47 @@ function enterSubmit(e) {
     submitMsg()
   }
 }
-function getChatList() {
-  chatList({ inquiryId: props.id, chatType: 1 }).then((res) => {
-    msgList.value = res.rows
-    console.log(msgList)
-    nextTick(() => {
-      let boxHeight = proxy.$refs['msgWarpRef'].$el.clientHeight
-      let listHeight = proxy.$refs['msgListRef'].clientHeight
-      proxy.$refs['msgWarpRef'].$el.scrollTo(0, listHeight - boxHeight)
-    })
+function getChatList(type) {
+  chatList({ inquiryId: props.id, chatType: 1, pageNum, pageSize: 10 }).then((res) => {
+    if (type === 'new') {
+      msgList.value = res.rows.reverse()
+      nextTick(() => {
+        let listHeight = proxy.$refs['msgListRef'].clientHeight
+        proxy.$refs['scrollbarRef'].setScrollTop(listHeight)
+      })
+    } else {
+      msgList.value = res.rows.reverse().concat(msgList.value)
+      nextTick(() => {
+        proxy.$refs['scrollbarRef'].setScrollTop(74.5 * res.rows.length)
+      })
+    }
+    totalPage = res.total
   })
 }
 function uploadSuccess() {
   nextTick(() => {
-    let boxHeight = proxy.$refs['msgWarpRef'].$el.clientHeight
+    // let boxHeight = proxy.$refs['msgWarpRef'].$el.clientHeight
+    // let listHeight = proxy.$refs['msgListRef'].clientHeight
+    // let fileHieght = proxy.$refs['fileListRef'].clientHeight
+    // proxy.$refs['msgWarpRef'].$el.scrollTo(0, listHeight - boxHeight + fileHieght)
     let listHeight = proxy.$refs['msgListRef'].clientHeight
-    let fileHieght = proxy.$refs['fileListRef'].clientHeight
-    proxy.$refs['msgWarpRef'].$el.scrollTo(0, listHeight - boxHeight + fileHieght)
+    proxy.$refs['scrollbarRef'].setScrollTop(listHeight)
   })
 }
-// getChatList()
+
+function handleScroll({ scrollTop }) {
+  if (scrollTop === 0 && totalPage > msgList.value.length) {
+    pageNum++
+    getChatList()
+  }
+}
+
 onMounted(() => {
-  getChatList()
+  getChatList('new')
+})
+
+defineExpose({
+  getChatList,
 })
 </script>
 
@@ -148,6 +176,7 @@ onMounted(() => {
     .msg-list {
       flex-grow: 1;
       padding: 20px 15px;
+      overflow-x: hidden;
       .msg-item {
         margin-top: 10px;
         &.self {
@@ -173,7 +202,7 @@ onMounted(() => {
           }
         }
 
-        .chatAttachmentList {
+        .sysFileInfoList {
           border: none;
           line-height: 12px;
           span {

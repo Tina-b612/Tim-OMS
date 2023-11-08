@@ -27,7 +27,7 @@ const tagsViewStore = useTagsViewStore()
   height: calc(100vh - 84px);
   width: 100%;
   position: relative;
-  overflow: scroll;
+  overflow: hidden;
   // background: #eef0f3;
 }
 

@@ -50,3 +50,12 @@ export function getInquiryCount(query) {
     params: query,
   })
 }
+
+// 修改询盘
+export function editInquiryStatus(data) {
+  return request({
+    url: '/inquiry/editInquiryStatus',
+    method: 'put',
+    data: data,
+  })
+}

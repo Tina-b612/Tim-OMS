@@ -512,15 +512,15 @@ function timingTime(start) {
     }
   }
 
-  .message-containar {
-    width: 25%;
-    max-width: 350px;
-    margin-bottom: 0;
-    flex-shrink: 0;
-    // margin-left: 20px;
-    box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    background: #fff;
-    padding: 0;
-  }
+  // .message-containar {
+  //   width: 25%;
+  //   max-width: 350px;
+  //   margin-bottom: 0;
+  //   flex-shrink: 0;
+  //   // margin-left: 20px;
+  //   box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+  //   background: #fff;
+  //   padding: 0;
+  // }
 }
 </style>

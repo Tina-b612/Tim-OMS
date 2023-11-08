@@ -13,13 +13,13 @@
               <el-link type="warning">{{ timingTimeStr }}</el-link>
             </span>
           </div>
-          <div v-show="!pageEdit">
+          <div class="right" v-show="!pageEdit">
             <div class="ml20">
               <el-button type="primary" icon="Back" circle size="small"></el-button>
               <span style="margin: 0 5px">1/15</span>
               <el-button type="primary" icon="Right" circle size="small"></el-button>
             </div>
-            <!-- <ChatDotSquare style="font-size: 30px; width: 1em; height: 1em; margin-left: 10px; color: #e6a23c" /> -->
+            <ChatDotSquare style="font-size: 30px; width: 1em; height: 1em; margin-left: 10px; color: #e6a23c" />
           </div>
         </div>
         <el-row class="flex-center-right mt20">
@@ -30,47 +30,18 @@
           </div>
           <!-- 默认状态按钮 -->
           <div class="right" v-show="!pageEdit">
-            <el-button
-              type="primary"
-              v-hasRole="['purchase']"
-              v-show="[1, 2].includes(inquiryStatus)"
-              @click="submitForm(1)"
-            >
-              暂存报价
-            </el-button>
-            <el-button
-              type="primary"
-              v-hasRole="['purchase']"
-              v-show="[1, 2].includes(inquiryStatus)"
-              @click="submitForm(3)"
-            >
-              确认报价
-            </el-button>
             <el-button type="success" @click="pageEdit = true">编辑</el-button>
-            <el-button type="success" @click="handleSave" v-if="!inquiryStatus">保存为草稿</el-button>
+            <el-button type="success" @click="submitForm(0)" v-if="!inquiryStatus">保存为草稿</el-button>
             <el-button type="success" @click="submitForm(1)" v-if="!inquiryStatus">发送询价</el-button>
             <el-button type="danger">取消</el-button>
           </div>
         </el-row>
         <el-form ref="orderRef" :model="form" :rules="rules" label-width="80px" class="orderForm" :disabled="false">
           <div class="mt20">
-            <div class="brand flex-center-left" v-if="form.rtBrand">
-              <span>品牌：</span>
-              <el-avatar shape="square" :src="form.rtBrand.brandLogo">
-                <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png" />
-              </el-avatar>
-              <span class="ml20">{{ form.rtBrand.brandName }}</span>
-              <div style="margin-left: 80px" v-if="!pageEdit">
-                <span>询盘描述：</span>
-                <span class="ml20">{{ form.inquiryDescription }}</span>
-              </div>
-            </div>
-            <el-form-item
-              class="mt20"
-              label="询盘描述"
-              prop="inquiryDescription"
-              v-if="pageEdit && ![5, 7].includes(inquiryStatus)"
-            >
+            <el-form-item label="品牌" prop="rtBrand" width="600px" v-if="![5, 7].includes(inquiryStatus)">
+              <brandSelect v-model="form.rtBrand" inquiryStatus disabled></brandSelect>
+            </el-form-item>
+            <el-form-item label="询盘描述" prop="inquiryDescription" v-if="![5, 7].includes(inquiryStatus)">
               <el-input
                 :rows="3"
                 type="textarea"
@@ -81,18 +52,18 @@
             </el-form-item>
           </div>
           <div class="flex-center-left ml20 mt20 totalPrice" v-if="![0].includes(inquiryStatus)">
-            <div>未税总价：¥ {{ form.inquiryTotalPriceNoTax || 0 }}</div>
-            <div class="ml20">税金：¥ {{ form.inquiryTax || 0 }}</div>
-            <div class="ml20">总价：¥ {{ form.inquiryTotalPrice || 0 }}</div>
+            <div>未税总价：¥0.00</div>
+            <div class="ml20">税金：¥0.00</div>
+            <div class="ml20">总价：¥0.00</div>
           </div>
           <div class="flex-center-left mt20">
             <el-form-item label="税率" prop="inquiryTaxRate" v-if="![0].includes(inquiryStatus)">
               <el-input
                 v-model="form.inquiryTaxRate"
                 placeholder="未税为0或者含税的税点"
+                :formatter="(value) => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+                :parser="(value) => value.replace(/\$\s?|(,*)/g, '')"
                 style="width: 230px"
-                @change="getTotalPrice"
-                :disabled="proxy.$auth.hasRole(['sales'] || !pageEdit)"
               >
                 <template #append>%</template>
               </el-input>
@@ -102,7 +73,6 @@
                 v-model="form.inquiryOtherFee"
                 placeholder="请输入包装费、税费、附加费等合计"
                 style="width: 300px"
-                @change="getTotalPrice"
               >
                 <template #append>元</template>
               </el-input>
@@ -110,6 +80,7 @@
           </div>
           <div class="mt20">
             <el-form-item label="产品明细">
+              <!-- <el-scrollbar> -->
               <el-table
                 :data="form.productList"
                 border
@@ -118,8 +89,9 @@
                 :cell-style="{ 'text-align': 'center' }"
                 style="width: 100%"
               >
+                <!-- :style="{ width: inquiryStatus ? 1200 : '100%' }" -->
                 <el-table-column type="index" width="50" label="序号" fixed="left" />
-                <el-table-column prop="productName" label="型号" fixed="left" :width="pageEdit ? 160 : 'auto'">
+                <el-table-column prop="productName" label="型号*" fixed="left">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.productName'" :rules="valueRule">
                       <el-input
@@ -131,12 +103,7 @@
                     </el-form-item>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  prop="productDescription"
-                  label="产品描述"
-                  :show-overflow-tooltip="true"
-                  :width="pageEdit ? 160 : 'auto'"
-                >
+                <el-table-column prop="productDescription" label="产品描述" :show-overflow-tooltip="true">
                   <template #default="scope">
                     <el-input
                       v-model="scope.row.productDescription"
@@ -146,7 +113,7 @@
                     <span v-else>{{ scope.row.productDescription }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="productQuantity" label="数量" :width="pageEdit ? 160 : 'auto'">
+                <el-table-column prop="productQuantity" label="数量">
                   <template #default="scope">
                     <el-input-number
                       v-model="scope.row.productQuantity"
@@ -156,10 +123,9 @@
                     <span v-else>{{ scope.row.productQuantity }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="salesFileList" label="销售附件" width="150">
+                <el-table-column prop="salesFileList" label="销售附件">
                   <template #default="scope">
                     <el-upload
-                      v-if="scope.row.edit"
                       v-model:file-list="scope.row.salesFileList"
                       :action="base + '/system/info/add'"
                       :limit="3"
@@ -169,22 +135,14 @@
                       :on-preview="handleFilePreview"
                     >
                       <!-- <el-button type="primary" :disabled="!scope.row.edit">上传附件</el-button> -->
-                      <el-icon><Plus /></el-icon>
+                      <el-icon v-if="scope.row.edit"><Plus /></el-icon>
                     </el-upload>
-                    <div v-else>
-                      <div v-for="item in scope.row.salesFileList">
-                        <el-button type="primary" size="small" link>
-                          {{ item.fileName }}
-                        </el-button>
-                      </div>
-                    </div>
                   </template>
                 </el-table-column>
                 <el-table-column prop="supplierId" label="供应商" width="150">
                   <template #default="scope">
                     <simple-select
                       v-model="scope.row.supplierId"
-                      :defaultList="scope.row.defaultSupplierList"
                       :remoteFunction="searchSupplier"
                       searchKey="supplierName"
                       searchValue="supplierId"
@@ -192,27 +150,24 @@
                     />
                   </template>
                 </el-table-column>
-                <el-table-column prop="productPurchasePrice" label="未税单价" width="100">
+                <el-table-column prop="productPurchasePrice" label="未税单价" width="150">
                   <template #default="scope">
-                    <el-input
-                      v-model="scope.row.productPurchasePrice"
-                      @change="getPurchaseTotalPrice(scope.row)"
-                    ></el-input>
+                    <el-input v-model="scope.row.productPurchasePrice" placeholder="请输入未税单价"></el-input>
                   </template>
                 </el-table-column>
-                <el-table-column prop="productReferencePrice" label="建议售价" width="100">
+                <el-table-column prop="productReferencePrice" label="建议售价" width="150">
                   <template #default="scope">
-                    <el-input v-model="scope.row.productReferencePrice"></el-input>
+                    <el-input v-model="scope.row.productReferencePrice" placeholder="请输入建议售价"></el-input>
                   </template>
                 </el-table-column>
-                <el-table-column prop="productPurchaseTotalPrice" label="采购总价" width="100">
-                  <!-- <template #default="scope">
+                <el-table-column prop="productPurchaseTotalPrice" label="采购总价" width="150">
+                  <template #default="scope">
                     <span>{{ scope.row.productPurchasePrice * scope.row.productQuantity }}</span>
-                  </template> -->
+                  </template>
                 </el-table-column>
-                <el-table-column prop="productDeliveryTime" label="预计货期" width="100">
+                <el-table-column prop="productDeliveryTime" label="预计货期" width="150">
                   <template #default="scope">
-                    <el-input v-model="scope.row.productDeliveryTime"></el-input>
+                    <el-input v-model="scope.row.productDeliveryTime" placeholder="请输入预计货期"></el-input>
                   </template>
                 </el-table-column>
                 <el-table-column prop="purchaseFileList" label="采购附件" width="150">
@@ -225,18 +180,18 @@
                       accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
                       :on-success="handleUploadSuccess"
                       :on-preview="handleFilePreview"
-                      :before-remove="handleFileRemove"
                     >
                       <el-icon><Plus /></el-icon>
                       <!-- <el-button type="primary"  :disabled="!scope.row.edit">上传附件</el-button> -->
                     </el-upload>
                   </template>
                 </el-table-column>
-                <el-table-column prop="productPurchaseMethod" label="采购方式" width="100">
+                <el-table-column prop="productPurchaseMethod" label="采购方式" width="150">
                   <template #default="scope">
-                    <el-input v-model="scope.row.productPurchaseMethod"></el-input>
+                    <el-input v-model="scope.row.productPurchaseMethod" placeholder="请输入采购方式"></el-input>
                   </template>
                 </el-table-column>
+
                 <el-table-column label="操作" align="center" width="150" fixed="right">
                   <template #default="scope">
                     <el-tooltip
@@ -267,6 +222,7 @@
                   </template>
                 </el-table-column>
               </el-table>
+              <!-- </el-scrollbar> -->
             </el-form-item>
           </div>
         </el-form>
@@ -277,19 +233,24 @@
         </el-row>
       </el-main>
       <el-aside class="message-containar">
-        <orderMessage :id="inquiryId" :inquirySn="form.inquirySn" ref="orderMessageRef"></orderMessage>
+        <orderMessage :id="inquiryId" :inquirySn="form.inquirySn"></orderMessage>
+        <!-- 消息面板 -->
+        <!-- <omsMessage v-else></omsMessage> -->
       </el-aside>
     </el-container>
+    <!-- <el-dialog v-model="dialogVisible">
+      <img w-full :src="dialogImageUrl" alt="Preview Image" />
+    </el-dialog> -->
   </div>
 </template>
 
 <script setup name="Detail">
-import { getInquiry, updateInquiry, editInquiryStatus } from '@/api/inquiry'
+import { addInquiry, getInquiry, updateInquiry } from '@/api/inquiry'
 import { updateProduct, delProduct } from '@/api/product'
-import { delFile } from '@/api/system/info'
 import { searchUser, searchSupplier, searchBrand } from '@/api/brand'
-import { nextTick, onBeforeMount, reactive } from 'vue'
+import { onBeforeMount, reactive } from 'vue'
 import orderMessage from './orderMessage'
+import omsMessage from '@/views/componments/omsMessage'
 import brandSelect from '@/views/componments/brandSelect'
 import { deepClone } from '@/utils/index'
 import SimpleSelect from '@/components/SimpleSelect'
@@ -307,7 +268,6 @@ const pageEdit = ref(false)
 const btnAddDiabled = ref(false)
 const updatedProductId = ref(null)
 const originData = ref({})
-import { getFloat } from '@/utils/index'
 
 // 产品默认对象
 const defaulfItem = {
@@ -342,28 +302,6 @@ onBeforeMount(() => {
     getInfo()
   }
 })
-
-// 计算采购总价
-function getPurchaseTotalPrice(item) {
-  item.productPurchaseTotalPrice = item.productPurchasePrice * item.productQuantity
-  getTotalPrice()
-}
-// 计算询盘总价
-function getTotalPrice() {
-  console.log('计算总价')
-  let price = 0
-  for (let i = 0; i < form.value.productList.length; i++) {
-    const item = form.value.productList[i]
-    price += item.productPurchaseTotalPrice * 1
-  }
-  form.value.inquiryTotalPriceNoTax = getFloat(price, 4)
-  // 税金
-  form.value.inquiryTax = getFloat((form.value.inquiryTotalPriceNoTax * form.value.inquiryTaxRate) / 100, 4)
-  // 总价
-  let TotalPrice = form.value.inquiryTotalPriceNoTax * 1 + form.value.inquiryOtherFee * 1
-  form.value.inquiryTotalPrice = getFloat(TotalPrice, 4)
-}
-
 // 获取当前询盘信息
 function getInfo() {
   getInquiry(inquiryId).then((res) => {
@@ -373,12 +311,17 @@ function getInfo() {
       data.productList = data.productList.map((item) => {
         item.edit = false
         item.btnEdit = true
-        item.defaultSupplierList = [
-          {
-            supplierId: item.supplierId,
-            supplierName: item.supplierName,
-          },
-        ]
+        // if (item.purchasePrice) {
+        //   totalPrice.value = totalPrice.value + item.purchasePrice * item.quantity
+        // }
+        // item.model = {
+        //   modelId: item.modelId,
+        //   modelName: item.modelName,
+        // }
+        // item.supplier = {
+        //   supplierId: item.supplierId,
+        //   supplierName: item.supplierName,
+        // }
         return item
       })
     }
@@ -406,7 +349,6 @@ function timingTime(start) {
   let day = Math.floor(s / 24) // 天数
   return day + '天' + ss + '小时' + ff + '分' + mm + '秒'
 }
-// 添加产品
 function handleAddProduct() {
   form.value.productList.push(deepClone(defaulfItem))
   form.value.productList = form.value.productList.map((item) => {
@@ -416,38 +358,31 @@ function handleAddProduct() {
     return item
   })
 }
-// 删除产品
+
+//删除型号
 function handleDeleteOrderItem(item, index) {
-  proxy.$modal.confirm('当前操作不可恢复，是否确认删除序号为"' + (index + 1) + '"产品?').then(function () {
-    if (item.productId) {
-      delProduct(item.productId).then((res) => {
+  proxy.$modal
+    .confirm('当前操作不可恢复，是否确认删除序号为"' + (index + 1) + '"产品?')
+    .then(function () {
+      if (item.productId) {
+        delProduct(item.productId).then((res) => {
+          proxy.$modal.msgSuccess('删除成功')
+          getInfo()
+        })
+      } else {
+        form.value.productList.splice(index, 1)
         proxy.$modal.msgSuccess('删除成功')
-        getInfo()
-      })
-    } else {
-      form.value.productList.splice(index, 1)
-      proxy.$modal.msgSuccess('删除成功')
-    }
-  })
+      }
+    })
+    .catch(() => {})
 }
-// 编辑产品
-function handleEditProduct(index) {
-  updatedProductId.value = form.value.productList[index].productId
-  for (let i = 0; i < form.value.productList.length; i++) {
-    const product = form.value.productList[i]
-    if (i === index) {
-      product.edit = true
-    }
-    product.btnEdit = false
-    btnAddDiabled.value = true
-  }
-}
+
 // 提交订单
 function submitForm(inquiryStatus) {
   proxy.$refs['orderRef'].validate((valid) => {
     if (valid) {
       form.value.inquiryStatus = inquiryStatus
-      editInquiryStatus(form.value)
+      addInquiry(form.value)
         .then((response) => {
           if (inquiryStatus === 1) {
             proxy.$modal.msgSuccess('保存成功')
@@ -463,21 +398,7 @@ function submitForm(inquiryStatus) {
     }
   })
 }
-// 保存编辑
-function handleSave() {
-  proxy.$refs['orderRef'].validate((valid) => {
-    if (valid) {
-      form.value.inquiryStatus = inquiryStatus
-      updateInquiry({ ...form.value, updatedProductId: updatedProductId.value }).then((response) => {
-        proxy.$modal.msgSuccess('保存成功')
-        pageEdit.value = false
-        btnAddDiabled.value = false
-        getInfo()
-        proxy.$refs.orderMessageRef.getChatList('new')
-      })
-    }
-  })
-}
+
 // 上传成功
 function handleUploadSuccess(res) {
   if (res.code === 500) {
@@ -488,17 +409,36 @@ function handleUploadSuccess(res) {
 function handleFilePreview(uploadFile) {
   window.open(uploadFile.url)
 }
-// 删除文件
-function handleFileRemove(uploadFile) {
-  return proxy.$modal
-    .confirm('当前操作不可恢复，是否确认删除附件： ' + uploadFile.name)
-    .then(function () {
-      delFile(uploadFile.fileId).then((res) => {
-        proxy.$modal.msgSuccess('删除成功')
-        return true
+// 编辑产品
+function handleEditProduct(index) {
+  updatedProductId.value = form.value.productList[index].productId
+  for (let i = 0; i < form.value.productList.length; i++) {
+    const product = form.value.productList[i]
+    if (i === index) {
+      product.edit = true
+    }
+    product.btnEdit = false
+    btnAddDiabled.value = true
+  }
+}
+// 保存编辑
+function handleSave() {
+  proxy.$refs['orderRef'].validate((valid) => {
+    if (valid) {
+      form.value.inquiryStatus = inquiryStatus
+      updateInquiry({
+        inquiryId: form.value.inquiryId,
+        updatedProductId: updatedProductId.value,
+        productList: form.value.productList,
+        inquiryDescription: form.value.inquiryDescription,
+      }).then((response) => {
+        proxy.$modal.msgSuccess('保存成功')
+        pageEdit.value = false
+        btnAddDiabled.value = false
+        getInfo()
       })
-    })
-    .catch(() => false)
+    }
+  })
 }
 // 取消编辑
 function handleEditCancle() {
@@ -512,24 +452,7 @@ function handleEditCancle() {
 /* style */
 .purchase-order-detail {
   background: #eee;
-  .brand {
-    margin-left: 20px;
-    font-size: 18px;
-    font-weight: 400;
-    line-height: 40px;
-  }
-  .descriptions-content {
-    text-decoration: underline;
-  }
-  .right {
-    position: absolute;
-    top: 0;
-    right: 0;
-  }
   .orderForm {
-    .brand-desc {
-      line-height: 40px;
-    }
     .el-textarea {
       max-width: 420px;
     }

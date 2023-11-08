@@ -245,10 +245,8 @@ const stateNumber = ref([])
 const inquiry_status_map = ref({})
 function getStateNumber() {
   getInquiryCount().then((res) => {
-    // console.log(inquiry_status)
     inquiry_status_map.value = inquiry_status.value.reduce((target, key, index) => {
       target[key.value] = key
-      console.log(target)
       return target
     }, {})
     stateNumber.value = res.data
