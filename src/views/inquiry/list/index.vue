@@ -309,6 +309,7 @@ getList()
     padding: 20px;
     background: #fff;
     margin-right: 10px;
+    overflow: auto;
     .pagination-container .el-pagination {
       right: 40px;
     }
