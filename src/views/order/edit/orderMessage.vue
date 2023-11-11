@@ -95,7 +95,7 @@ const base = import.meta.env.VITE_APP_BASE_API
 const userName = useUserStore().name
 const props = defineProps({
   id: null,
-  inquirySn: null,
+  orderSn: null,
 })
 const form = ref({})
 const msgList = ref([])
@@ -103,7 +103,7 @@ let pageNum = 1
 let totalPage = 0
 
 function submitMsg() {
-  pushChat({ ...form.value, inquiryId: props.id, chatType: 1, inquirySn: props.inquirySn }).then((res) => {
+  pushChat({ ...form.value, orderId: props.id, chatType: 2, orderSn: props.orderSn }).then((res) => {
     form.value = {
       content: '',
       sysFileInfoList: [],
@@ -121,7 +121,7 @@ function enterSubmit(e) {
   }
 }
 function getChatList(type) {
-  chatList({ inquiryId: props.id, chatType: 1, pageNum, pageSize: 10 }).then((res) => {
+  chatList({ orderId: props.id, chatType: 2, pageNum, pageSize: 10 }).then((res) => {
     if (type === 'new') {
       msgList.value = res.rows.reverse()
       nextTick(() => {

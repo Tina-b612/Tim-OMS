@@ -42,13 +42,6 @@ const selection = ref([])
 function show(row, type) {
   selection.value = []
   if (row) {
-    // data.value = props.userList.filter((user) => {
-    //   return row.brandResponsibleUserList.every((sUser) => {
-    //     {
-    //       return user.userId != sUser.userId
-    //     }
-    //   })
-    // })
     brandId.value = row.brandId
     editType.value = type
     let key = type === 1 ? 'brandResponsibleUserList' : 'brandSupplierList'

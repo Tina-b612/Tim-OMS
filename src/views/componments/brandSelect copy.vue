@@ -1,7 +1,4 @@
 <template>
-  <!-- v-loadmore="loadmore"
-    class="more-select"
-    popper-class="more_select_dropdown" -->
   <el-select
     v-model="selection"
     value-key="brandName"
@@ -43,7 +40,7 @@ import defaultLogo from '@/assets/images/default.png'
 const emit = defineEmits()
 const props = defineProps({
   modelValue: [String, Object],
-  extroProps: Object,
+  brandEnable: Number,
   disabled: Boolean,
 })
 const selectLoading = ref(false)
@@ -67,7 +64,7 @@ watch(
 function handleSearchBrandList(brandName) {
   if (brandName) {
     selectLoading.value = true
-    searchBrand({ brandName: brandName, ...props.extroProps }).then((response) => {
+    searchBrand({ brandName: brandName, brandEnable: props.brandEnable }).then((response) => {
       selectLoading.value = false
       brandSearchList.value = response
     })
@@ -81,7 +78,6 @@ function brandSelectChange(value) {
       brandName: value,
     }
     emit('update:modelValue', obj)
-    emit('change', obj)
   } else {
     // let obj = {
     //   brandId: value.brandId,
@@ -90,18 +86,6 @@ function brandSelectChange(value) {
     // console.log(obj)
     emit('update:modelValue', value)
   }
-}
-const pageNo = ref(0)
-const hasNest = ref(true)
-function loadmore() {
-  setTimeout(() => {
-    if (hasNest.value === false) {
-      return
-    } else {
-      pageNo.value = pageNo.value + 1
-      console.log('加载')
-    }
-  })
 }
 </script>
 

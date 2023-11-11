@@ -42,3 +42,11 @@ export function delSupplier(supplierId) {
     method: 'delete',
   })
 }
+// 查询品牌关联的供应商
+export function listBrandRelatedSupplier(query) {
+  return request({
+    url: '/supplier/listBrandRelatedSupplier',
+    method: 'get',
+    params: query,
+  })
+}

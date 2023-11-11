@@ -25,7 +25,7 @@
 
       <el-form-item prop="timProductList">
         <el-table :data="form.timProductList" border class="timProductList" style="width: 100%">
-          <el-table-column type="index" label="序号" width="60" />
+          <!-- <el-table-column type="index" label="序号" width="60" /> -->
           <el-table-column prop="timProductList.model" label="型号" width="200">
             <template #default="scope">
               <el-form-item :prop="'timProductList.' + scope.$index + '.model'" :rules="valueRule">
@@ -240,7 +240,7 @@ function handleAddOrderItem() {
 //删除型号
 function handleDeleteOrderItem(index) {
   proxy.$modal
-    .confirm('是否确认删除序号为"' + (index + 1) + '"产品?')
+    .confirm('当前操作不可恢复，是否确认删除型号为"' + item.productName + '"产品?')
     .then(function () {
       form.value.timProductList.splice(index, 1)
     })

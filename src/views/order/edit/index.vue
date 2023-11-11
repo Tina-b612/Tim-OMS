@@ -47,17 +47,22 @@
         <el-form ref="orderRef" :model="form" :rules="rules" label-width="80px" class="orderForm" :disabled="false">
           <!-- 品牌 -->
           <div class="mt20">
-            <div class="brand flex-center-left" v-if="form.rtBrand">
-              <span>品牌：</span>
-              <el-avatar shape="square" :src="form.rtBrand.brandLogo">
-                <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png" />
-              </el-avatar>
-              <span class="ml20">{{ form.rtBrand.brandName }}</span>
-              <div style="margin-left: 80px" v-if="![0].includes(orderStatus)">
-                <span>订单描述：</span>
-                <span>{{ form.orderDescription }}</span>
-              </div>
-            </div>
+            <el-descriptions size="large" class="ml20 inquiryInfo" style="width: 800px" :column="2">
+              <el-descriptions-item label="品牌" class-name="brandInfo">
+                <div v-if="form.rtBrand" style="display: inline-block">
+                  <el-avatar shape="square" :src="form.rtBrand.brandLogo">
+                    <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png" />
+                  </el-avatar>
+                  <span class="ml10">{{ form.rtBrand.brandName }}</span>
+                </div>
+              </el-descriptions-item>
+              <el-descriptions-item label="PI号">
+                {{ form.piSn }}
+              </el-descriptions-item>
+              <el-descriptions-item label="订单描述" class-name="orderDescription" v-if="!pageEdit && !!orderStatus">
+                {{ form.orderDescription }}
+              </el-descriptions-item>
+            </el-descriptions>
 
             <el-form-item
               class="mt20"
@@ -65,7 +70,14 @@
               prop="orderDescription"
               v-if="pageEdit || [0].includes(orderStatus)"
             >
-              <el-input :rows="3" type="textarea" v-model="form.orderDescription" placeholder="请输入订单描述" />
+              <el-input
+                :rows="3"
+                maxlength="255"
+                show-word-limit
+                type="textarea"
+                v-model="form.orderDescription"
+                placeholder="请输入订单描述"
+              />
             </el-form-item>
           </div>
           <!-- 合计 -->
@@ -180,7 +192,7 @@
                       </el-descriptions>
                     </template>
                   </el-table-column>
-                  <el-table-column type="index" width="60" label="序号" />
+                  <!-- <el-table-column type="index" width="60" label="序号" /> -->
                   <el-table-column label="供应商" prop="orderSn" />
                   <el-table-column label="金额" prop="paymentAmount" />
                   <el-table-column label="采购合同" prop="paymentContractFileList">
@@ -193,7 +205,7 @@
                       <dict-tag style="display: inline" :options="payment_status" :value="scope.row.paymentStatus" />
                     </template>
                   </el-table-column>
-                  <el-table-column label="付款证明" prop="orderSn">
+                  <el-table-column label="付款证明" prop="paymentProveFileList" v-if="proxy.$auth.hasRole('manager')">
                     <template #default="scope">
                       <el-upload
                         v-if="!scope.row.paymentStatus"
@@ -207,16 +219,17 @@
                       >
                         <el-icon><Plus /></el-icon>
                       </el-upload>
-                      <div v-else>
-                        <el-button link type="primary">
-                          <a :href="scope.row.paymentContractFileList[0].url" target="_blank">
-                            {{ scope.row.paymentContractFileList[0].fileName }}
-                          </a>
-                        </el-button>
+                      <div v-else class="link-type text-overflow fs12">
+                        <a :href="scope.row.paymentContractFileList[0].url" target="_blank">
+                          {{ scope.row.paymentContractFileList[0].fileName }}
+                        </a>
+                        <!-- <el-button link type="primary">
+                          
+                        </el-button> -->
                       </div>
                     </template>
                   </el-table-column>
-                  <el-table-column label="操作" prop="orderSn">
+                  <el-table-column label="操作" prop="orderSn" v-if="proxy.$auth.hasRole('manager')">
                     <template #default="scope">
                       <el-tooltip content="确认付款" placement="top">
                         <el-button
@@ -242,7 +255,7 @@
               </el-card>
             </el-col>
           </el-row>
-          <el-form-item
+          <!-- <el-form-item
             size="large"
             class="mt20"
             label="PI号"
@@ -251,7 +264,7 @@
           >
             <el-input v-model="form.piSn" placeholder="请输入PI号" v-if="orderStatus === 3" />
             <span v-else>{{ form.piSn }}</span>
-          </el-form-item>
+          </el-form-item> -->
 
           <!-- 
           <p>{{ ![0].includes(orderStatus) }}</p>
@@ -268,7 +281,7 @@
                 @selection-change="handleSelectionChange"
               >
                 <el-table-column type="selection" width="55" v-if="orderStatus === 3" />
-                <el-table-column type="index" width="50" label="序号" fixed="left" />
+                <!-- <el-table-column type="index" width="50" label="序号" fixed="left" /> -->
                 <el-table-column
                   prop="productName"
                   label="型号"
@@ -339,14 +352,12 @@
                 <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase']">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.supplierId'" :rules="valueRule">
-                      <simple-select
+                      <simple-select-local
                         v-if="!orderStatus || scope.row.edit"
                         v-model="scope.row.supplierId"
-                        :defaultList="scope.row.defaultSupplierList"
-                        :remoteFunction="searchSupplier"
+                        :defaultList="form.supplierList"
                         searchKey="supplierName"
                         searchValue="supplierId"
-                        placeholder="请输入供应商名称"
                       />
                       <span v-else>{{ scope.row.supplierName }}</span>
                     </el-form-item>
@@ -453,7 +464,7 @@
                   align="center"
                   width="150"
                   fixed="right"
-                  v-if="(orderStatus >= 3 && proxy.$auth.hasRole('purchase')) || [0, 1].includes(orderStatus)"
+                  v-if="[0, 1].includes(orderStatus)"
                 >
                   <template #default="scope">
                     <el-tooltip
@@ -507,7 +518,7 @@
         </el-row>
       </el-main>
       <el-aside class="message-containar">
-        <orderMessage :id="orderId" :inquirySn="form.inquirySn" ref="orderMessageRef"></orderMessage>
+        <orderMessage :id="orderId" :orderSn="form.orderSn" ref="orderMessageRef"></orderMessage>
       </el-aside>
     </el-container>
     <payInfoDialog ref="payInfoDialogRef" @submit="submitForm" :ordersupplierList="ordersupplierList" />
@@ -523,6 +534,7 @@ import { nextTick, onBeforeMount, reactive } from 'vue'
 import orderMessage from './orderMessage'
 import { deepClone } from '@/utils/index'
 import SimpleSelect from '@/components/SimpleSelect'
+import SimpleSelectLocal from '@/components/SimpleSelectLocal'
 import payInfoDialog from './payInfoDialog.vue'
 
 import { getToken } from '@/utils/auth'
@@ -544,7 +556,6 @@ const updatedProductId = ref(null)
 const originData = ref({})
 const multipleSelection = ref([])
 const ordersupplierList = ref([])
-const paymentForm = ref({})
 
 // 产品默认对象
 const defaulfItem = {
@@ -662,7 +673,7 @@ function handleAddProduct() {
 }
 // 删除产品
 function handleDeleteOrderItem(item, index) {
-  proxy.$modal.confirm('当前操作不可恢复，是否确认删除序号为"' + (index + 1) + '"产品?').then(function () {
+  proxy.$modal.confirm('当前操作不可恢复，是否确认删除型号为"' + item.productName + '"产品?').then(function () {
     if (item.productId) {
       delProduct(item.productId).then((res) => {
         proxy.$modal.msgSuccess('删除成功')
@@ -689,7 +700,13 @@ function handleEditProduct(index) {
 // 提交订单
 function submitForm(orderStatus, payment) {
   if (orderStatus === 7) {
-    proxy.$modal.confirm('当前操作不可恢复，是否确认取消订单？').then(() => {})
+    proxy.$modal.confirm('当前操作不可恢复，是否确认取消订单？').then(() => {
+      editOrderStatus({ ...form.value, orderStatus }).then((response) => {
+        proxy.$modal.msgSuccess('保存成功')
+        proxy.$tab.closeOpenPage({ path: '/order' })
+      })
+    })
+    return
   }
   proxy.$refs['orderRef'].validate((valid) => {
     if (valid) {
@@ -781,10 +798,12 @@ function openPayInfo() {
 }
 //   去付款
 function handlePay(row) {
-  console.log('pay')
-  console.log(row)
-  if (row.paymentContractFileList) {
+  console.log(row.paymentProveFileList)
+  console.log(row.paymentProveFileList.length)
+  // return
+  if (row.paymentProveFileList.length) {
     payment({
+      ...row,
       paymentStatus: 1,
       paymentId: row.paymentId,
     }).then(() => {
@@ -819,6 +838,20 @@ function handleCanclePay(row) {
     font-weight: 400;
     line-height: 40px;
   }
+  .inquiryInfo {
+    .brandInfo {
+      span {
+        display: inline-block;
+        line-height: 50px;
+        vertical-align: middle;
+      }
+    }
+    .inquiryDescription {
+      width: 500px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+  }
   .descriptions-content {
     text-decoration: underline;
   }
@@ -843,8 +876,13 @@ function handleCanclePay(row) {
   }
   .productList {
     .cell {
-      padding: 0 4px 2px;
-      // overflow: visible;/
+      padding: 0 4px 12px;
+      overflow: visible;
+    }
+    .el-form-item--default .el-form-item__content > span {
+      display: inline-block;
+      width: 100%;
+      text-align: center;
     }
   }
   .totalPrice {

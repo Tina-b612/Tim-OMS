@@ -174,6 +174,7 @@ function handleChangeSelect(index) {
   let item = form.value.paymentList[index]
   getSupplier(item.supplierId).then((response) => {
     form.value.paymentList[index].paymentBankName = response.data.supplierBankName || ''
+    form.value.paymentList[index].supplierName = response.data.supplierName || ''
     form.value.paymentList[index].paymentPayeeAccount = response.data.supplierPayeeAccount || ''
   })
 }

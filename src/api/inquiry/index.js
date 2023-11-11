@@ -59,3 +59,10 @@ export function editInquiryStatus(data) {
     data: data,
   })
 }
+// 查询历史成交记录
+export function quotedHistory(query) {
+  return request({
+    url: '/product/quotedHistory/' + query,
+    method: 'get',
+  })
+}

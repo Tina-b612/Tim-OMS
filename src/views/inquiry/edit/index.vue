@@ -37,7 +37,7 @@
                 type="primary"
                 v-hasRole="['purchase']"
                 v-show="[1, 2].includes(inquiryStatus)"
-                @click="submitForm(1)"
+                @click="submitForm(inquiryStatus)"
               >
                 暂存报价
               </el-button>
@@ -51,46 +51,83 @@
               </el-button>
               <el-button
                 type="success"
-                v-show="(inquiryStatus >= 3 && proxy.$auth.hasRole('purchase')) || inquiryStatus === 1"
+                v-show="(inquiryStatus === 3 && proxy.$auth.hasRole('purchase')) || [1, 2].includes(inquiryStatus)"
                 @click="pageEdit = true"
               >
                 编辑
               </el-button>
               <el-button type="success" @click="submitForm(0)" v-if="!inquiryStatus">保存为草稿</el-button>
               <el-button type="success" @click="submitForm(1)" v-if="!inquiryStatus">发送询价</el-button>
-              <el-button type="success" @click="submitForm(4)" v-if="[3].includes(inquiryStatus)">申请采购</el-button>
-              <el-button type="danger" v-if="inquiryStatus < 3">取消</el-button>
+              <el-button
+                type="success"
+                @click="submitForm(4)"
+                v-if="[3].includes(inquiryStatus) && proxy.$auth.hasRole('sales')"
+              >
+                申请采购
+              </el-button>
+              <el-button type="danger" @click="submitForm(5)" v-if="inquiryStatus < 3">取消</el-button>
             </div>
           </el-row>
           <!-- 表单 -->
           <el-form ref="orderRef" :model="form" :rules="rules" label-width="80px" class="orderForm" :disabled="false">
             <!-- 品牌 -->
             <div class="mt20">
-              <div class="brand flex-center-left" v-if="form.rtBrand">
+              <!-- <div class="brand flex-center-left" v-if="form.rtBrand">
                 <span>品牌：</span>
                 <el-avatar shape="square" :src="form.rtBrand.brandLogo">
                   <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png" />
                 </el-avatar>
                 <span class="ml20">{{ form.rtBrand.brandName }}</span>
-                <div style="margin-left: 80px" v-if="!pageEdit">
-                  <span>询盘描述：</span>
-                  <span>{{ form.inquiryDescription }}</span>
-                </div>
               </div>
+              <div v-if="!pageEdit && !!inquiryStatus">
+                <span>询盘描述：</span>
+                <span>{{ form.inquiryDescription }}</span>
+              </div> -->
+              <el-descriptions size="large" class="ml20 inquiryInfo" style="width: 800px" :column="2">
+                <el-descriptions-item label="品牌" class-name="brandInfo">
+                  <div v-if="form.rtBrand" style="display: inline-block">
+                    <el-avatar shape="square" :src="form.rtBrand.brandLogo">
+                      <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png" />
+                    </el-avatar>
+                    <span class="ml10">{{ form.rtBrand.brandName }}</span>
+                  </div>
+                </el-descriptions-item>
+                <el-descriptions-item label="PI号" v-if="inquiryStatus > 3">
+                  {{ form.piSn }}
+                </el-descriptions-item>
+                <el-descriptions-item
+                  label="询盘描述"
+                  class-name="inquiryDescription"
+                  v-if="!pageEdit && !!inquiryStatus"
+                >
+                  {{ form.inquiryDescription }}
+                </el-descriptions-item>
+              </el-descriptions>
 
               <el-form-item
                 class="mt20"
                 label="询盘描述"
                 prop="inquiryDescription"
-                v-if="pageEdit && ![5, 7].includes(inquiryStatus)"
+                v-if="!inquiryStatus || (pageEdit && ![5, 7].includes(inquiryStatus))"
               >
                 <el-input
                   :rows="3"
                   type="textarea"
+                  maxlength="255"
+                  show-word-limit
                   v-model="form.inquiryDescription"
                   placeholder="请输入询盘描述"
-                  :disabled="!pageEdit"
                 />
+              </el-form-item>
+
+              <el-form-item
+                size="large"
+                class="mt20"
+                label="PI号"
+                prop="piSn"
+                v-if="inquiryStatus === 3 && proxy.$auth.hasRole('sales')"
+              >
+                <el-input v-model="form.piSn" placeholder="请输入PI号" />
               </el-form-item>
             </div>
             <!-- 合计 -->
@@ -124,7 +161,7 @@
                       </template>
 
                       <el-input
-                        v-if="proxy.$auth.hasRole('purchase') && pageEdit"
+                        v-if="proxy.$auth.hasRole('purchase') && (pageEdit || [1, 2].includes(inquiryStatus))"
                         v-model="form.inquiryTaxRate"
                         style="width: 130px"
                         @input="getTotalPrice"
@@ -151,14 +188,17 @@
                         </el-popover>
                         :
                       </template>
-                      <el-input
-                        v-if="proxy.$auth.hasRole('purchase') && pageEdit"
+                      <span class="mr10">¥</span>
+                      <el-input-number
+                        v-if="proxy.$auth.hasRole('purchase') && (pageEdit || [1, 2].includes(inquiryStatus))"
                         v-model="form.inquiryOtherFee"
                         style="width: 150px"
-                        @input="getTotalPrice"
+                        :controls="false"
+                        :precision="4"
+                        @change="getTotalPrice"
                       >
                         <template #append>元</template>
-                      </el-input>
+                      </el-input-number>
                       <span v-else>¥ {{ form.inquiryOtherFee || 0 }}</span>
                     </el-form-item>
                   </div>
@@ -187,23 +227,32 @@
                 </el-card>
               </el-col>
             </el-row>
-            <el-form-item
-              size="large"
-              class="mt20"
-              label="PI号"
-              prop="piSn"
-              v-if="inquiryStatus >= 3 && proxy.$auth.hasRole('sales')"
-            >
-              <el-input v-model="form.piSn" placeholder="请输入PI号" v-if="inquiryStatus === 3" />
-              <span v-else>{{ form.piSn }}</span>
-            </el-form-item>
 
             <!-- 
           <p>{{ ![0].includes(inquiryStatus) }}</p>
           <p>{{ proxy.$auth.hasRole('purchase') && pageEdit }}</p> -->
             <div class="mt20">
+              <el-form-item label="订单状态" v-if="form.orderList">
+                <el-table
+                  :data="form.orderList"
+                  border
+                  class="productList"
+                  :header-cell-style="{ 'text-align': 'center' }"
+                  :cell-style="{ 'text-align': 'center' }"
+                  style="width: 400px"
+                >
+                  <!-- <el-table-column type="index" width="50" label="序号" fixed="left" /> -->
+                  <el-table-column label="订单号" prop="orderSn" />
+                  <el-table-column label="订单状态" prop="orderStatus">
+                    <template #default="scope">
+                      <dict-tag style="display: inline" :options="order_status" :value="scope.row.orderStatus" />
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </el-form-item>
               <el-form-item label="产品明细">
                 <el-table
+                  ref="productListRef"
                   :data="form.productList"
                   border
                   class="productList"
@@ -212,9 +261,10 @@
                   style="width: 100%"
                   @selection-change="handleSelectionChange"
                 >
+                  <!-- :selectable="selectable"  -->
                   <el-table-column type="selection" width="55" v-if="inquiryStatus === 3" />
-                  <el-table-column type="index" width="50" label="序号" fixed="left" />
-                  <el-table-column prop="productName" label="型号" fixed="left" :width="pageEdit ? 160 : 'auto'">
+                  <!-- <el-table-column type="index" width="50" label="序号" fixed="left" /> -->
+                  <el-table-column prop="productName" label="型号" fixed="left" :width="pageEdit ? 150 : 'auto'">
                     <template #default="scope">
                       <el-form-item :prop="'productList.' + scope.$index + '.productName'" :rules="valueRule">
                         <el-input
@@ -230,7 +280,7 @@
                     prop="productDescription"
                     label="产品描述"
                     :show-overflow-tooltip="true"
-                    :width="![0, 1].includes(inquiryStatus) && pageEdit ? 160 : 'auto'"
+                    :width="proxy.$auth.hasRole('purchase') && pageEdit ? 160 : 'auto'"
                   >
                     <template #default="scope">
                       <el-input
@@ -244,14 +294,16 @@
                   <el-table-column
                     prop="productQuantity"
                     label="数量"
-                    :width="![0, 1].includes(inquiryStatus) && pageEdit ? 160 : 'auto'"
+                    :width="proxy.$auth.hasRole('purchase') && pageEdit ? 160 : 'auto'"
                   >
                     <template #default="scope">
                       <el-input-number
                         v-model="scope.row.productQuantity"
+                        :controls="false"
+                        :precision="0"
                         :min="1"
                         v-if="scope.row.edit || inquiryStatus === 0"
-                        @input="getPurchaseTotalPrice(scope.row)"
+                        @change="getPurchaseTotalPrice(scope.row)"
                       ></el-input-number>
                       <span v-else>{{ scope.row.productQuantity }}</span>
                     </template>
@@ -272,26 +324,39 @@
                         <el-icon><Plus /></el-icon>
                       </el-upload>
                       <div v-else v-for="item in scope.row.salesFileList" class="link-type text-overflow fs12">
-                        {{ item.fileName }}
+                        <a :href="item.url" target="_blank" rel="noopener noreferrer">{{ item.fileName }}</a>
                       </div>
                     </template>
                   </el-table-column>
                   <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase']">
                     <template #default="scope">
                       <el-form-item :prop="'productList.' + scope.$index + '.supplierId'" :rules="valueRule">
-                        <simple-select
+                        <simple-select-local
                           v-if="inquiryStatus < 3 || scope.row.edit"
                           v-model="scope.row.supplierId"
-                          :defaultList="scope.row.defaultSupplierList"
-                          :remoteFunction="searchSupplier"
+                          :defaultList="form.supplierList"
                           searchKey="supplierName"
                           searchValue="supplierId"
-                          placeholder="请输入供应商名称"
-                          :supplierEnable="1"
-                          :brandId="form.rtBrand.brandId"
                         />
                         <span v-else>{{ scope.row.supplierName }}</span>
                       </el-form-item>
+                    </template>
+                  </el-table-column>
+                  <el-table-column
+                    prop="productPurchaseMethod"
+                    label="采购方式"
+                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                    width="100"
+                  >
+                    <template #default="scope">
+                      <el-form-item
+                        v-if="inquiryStatus < 3 || scope.row.edit"
+                        :prop="'productList.' + scope.$index + '.productPurchaseMethod'"
+                        :rules="valueRule"
+                      >
+                        <el-input v-model="scope.row.productPurchaseMethod"></el-input>
+                      </el-form-item>
+                      <span v-else>{{ scope.row.productPurchaseMethod }}</span>
                     </template>
                   </el-table-column>
                   <el-table-column
@@ -302,11 +367,13 @@
                   >
                     <template #default="scope">
                       <el-form-item :prop="'productList.' + scope.$index + '.productPurchasePrice'" :rules="valueRule">
-                        <el-input
+                        <el-input-number
                           v-if="inquiryStatus < 3 || scope.row.edit"
                           v-model="scope.row.productPurchasePrice"
-                          @input="getPurchaseTotalPrice(scope.row)"
-                        ></el-input>
+                          :controls="false"
+                          :precision="4"
+                          @change="getPurchaseTotalPrice(scope.row)"
+                        ></el-input-number>
                         <span v-else>{{ scope.row.productPurchasePrice }}</span>
                       </el-form-item>
                     </template>
@@ -318,11 +385,15 @@
                     width="100"
                   >
                     <template #default="scope">
-                      <el-input
-                        v-if="inquiryStatus < 3 || scope.row.edit"
-                        v-model="scope.row.productReferencePrice"
-                      ></el-input>
-                      <span v-else>{{ scope.row.productReferencePrice }}</span>
+                      <el-form-item>
+                        <el-input-number
+                          v-if="inquiryStatus < 3 || scope.row.edit"
+                          v-model="scope.row.productReferencePrice"
+                          :controls="false"
+                          :precision="4"
+                        ></el-input-number>
+                        <span v-else>{{ scope.row.productReferencePrice }}</span>
+                      </el-form-item>
                     </template>
                   </el-table-column>
                   <el-table-column
@@ -342,11 +413,13 @@
                     width="100"
                   >
                     <template #default="scope">
-                      <el-input
-                        v-if="inquiryStatus < 3 || scope.row.edit"
-                        v-model="scope.row.productDeliveryTime"
-                      ></el-input>
-                      <span v-else>{{ scope.row.productDeliveryTime }}</span>
+                      <el-form-item>
+                        <el-input
+                          v-if="inquiryStatus < 3 || scope.row.edit"
+                          v-model="scope.row.productDeliveryTime"
+                        ></el-input>
+                        <span v-else>{{ scope.row.productDeliveryTime }}</span>
+                      </el-form-item>
                     </template>
                   </el-table-column>
                   <el-table-column
@@ -371,26 +444,15 @@
                       </el-upload>
                       <div v-else>
                         <div v-for="item in scope.row.purchaseFileList" class="link-type text-overflow fs12">
-                          {{ item.fileName }}
+                          <!-- {{ item.fileName }} -->
+                          <a :href="item.url" target="_blank" rel="noopener noreferrer">{{ item.fileName }}</a>
                         </div>
                       </div>
                     </template>
                   </el-table-column>
-                  <el-table-column
-                    prop="productPurchaseMethod"
-                    label="采购方式"
-                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRole('purchase')"
-                    width="100"
-                  >
+                  <el-table-column label="产品状态" prop="productType" v-if="inquiryStatus >= 3">
                     <template #default="scope">
-                      <el-form-item
-                        v-if="inquiryStatus < 3 || scope.row.edit"
-                        :prop="'productList.' + scope.$index + '.productPurchaseMethod'"
-                        :rules="valueRule"
-                      >
-                        <el-input v-model="scope.row.productPurchaseMethod"></el-input>
-                      </el-form-item>
-                      <span v-else>{{ scope.row.productPurchaseMethod }}</span>
+                      <dict-tag style="display: inline" :options="product_status" :value="scope.row.productType" />
                     </template>
                   </el-table-column>
                   <el-table-column
@@ -398,16 +460,52 @@
                     align="center"
                     width="150"
                     fixed="right"
-                    v-if="(inquiryStatus >= 3 && proxy.$auth.hasRole('purchase')) || [0, 1].includes(inquiryStatus)"
+                    v-if="(inquiryStatus === 3 && proxy.$auth.hasRole('purchase')) || [0, 1, 2].includes(inquiryStatus)"
                   >
                     <template #default="scope">
-                      <el-tooltip
+                      <!-- <el-tooltip
                         content="历史成交价"
                         placement="top"
                         v-if="scope.row.productId && ![0].includes(inquiryStatus) && proxy.$auth.hasRole('purchase')"
                       >
-                        <el-button link type="primary" icon="Clock"></el-button>
-                      </el-tooltip>
+                        <el-button
+                          link
+                          type="primary"
+                          icon="Clock"
+                          :disabled="![1, 2].includes(inquiryStatus) || !scope.row.btnEdit"
+                          @click="getHistory(scope.row)"
+                        ></el-button> 
+                      </el-tooltip> -->
+
+                      <el-popover
+                        placement="top"
+                        title="历史成交价"
+                        width="800"
+                        trigger="click"
+                        v-if="scope.row.productId && ![0].includes(inquiryStatus) && proxy.$auth.hasRole('purchase')"
+                      >
+                        <template #reference>
+                          <el-button
+                            link
+                            type="primary"
+                            icon="Clock"
+                            :disabled="![1, 2].includes(inquiryStatus) || !scope.row.btnEdit"
+                            @click="getHistory(scope.row)"
+                          ></el-button>
+                        </template>
+                        <el-table
+                          :data="historyList"
+                          :header-cell-style="{ 'text-align': 'center' }"
+                          :cell-style="{ 'text-align': 'center' }"
+                        >
+                          <el-table-column width="120" property="supplierName" label="供应商名称" />
+                          <el-table-column property="productPurchasePrice" label="金额" />
+                          <el-table-column property="productReferencePrice" label="建议售价" />
+                          <el-table-column property="productDeliveryTime" label="预计货期" />
+                          <el-table-column property="productPurchaseMethod" label="付款方式" />
+                          <el-table-column width="300" property="productUpdateTime" label="报价时间" />
+                        </el-table>
+                      </el-popover>
                       <el-tooltip
                         content="编辑"
                         placement="top"
@@ -443,24 +541,6 @@
                 </el-table>
               </el-form-item>
             </div>
-            <el-form-item label="订单详情" v-if="form.orderList">
-              <el-table
-                :data="form.orderList"
-                border
-                class="productList"
-                :header-cell-style="{ 'text-align': 'center' }"
-                :cell-style="{ 'text-align': 'center' }"
-                style="width: 400px"
-              >
-                <el-table-column type="index" width="50" label="序号" fixed="left" />
-                <el-table-column label="订单号" prop="orderSn" />
-                <el-table-column label="订单状态" prop="orderStatus">
-                  <template #default="scope">
-                    <dict-tag style="display: inline" :options="order_status" :value="scope.row.orderStatus" />
-                  </template>
-                </el-table-column>
-              </el-table>
-            </el-form-item>
           </el-form>
           <el-row class="bgWhite flex-center-right btn-box">
             <el-button
@@ -482,15 +562,13 @@
 </template>
 
 <script setup name="Detail">
-import { getInquiry, updateInquiry, editInquiryStatus } from '@/api/inquiry'
-import { updateProduct, delProduct } from '@/api/product'
+import { getInquiry, updateInquiry, editInquiryStatus, quotedHistory } from '@/api/inquiry'
+import { delProduct } from '@/api/product'
 import { delFile } from '@/api/system/info'
-import { searchSupplier } from '@/api/brand'
-import brandSelect from '@/views/componments/brandSelect'
 import { nextTick, onBeforeMount, reactive } from 'vue'
 import orderMessage from './orderMessage'
 import { deepClone } from '@/utils/index'
-import SimpleSelect from '@/components/SimpleSelect'
+import SimpleSelectLocal from '@/components/SimpleSelectLocal'
 
 import { getToken } from '@/utils/auth'
 import useUserStore from '@/store/modules/user'
@@ -500,6 +578,7 @@ console.log(user.roles)
 const { proxy } = getCurrentInstance()
 const { inquiry_status } = proxy.useDict('inquiry_status')
 const { order_status } = proxy.useDict('order_status')
+const { product_status } = proxy.useDict('product_status')
 const inquiryStatus = ref(0)
 const inquiryId = proxy.$route.query.id
 const base = import.meta.env.VITE_APP_BASE_API
@@ -546,7 +625,7 @@ onBeforeMount(() => {
   }
 })
 
-// 计算采购总价
+// 计算产品采购总价
 function getPurchaseTotalPrice(item) {
   item.productPurchaseTotalPrice = getFloat(item.productPurchasePrice * item.productQuantity, 4)
   getTotalPrice()
@@ -572,14 +651,7 @@ function getInfo() {
   getInquiry(inquiryId).then((res) => {
     let data = res.data
     inquiryStatus.value = data.inquiryStatus
-    console.log([1, 2].includes(inquiryStatus), proxy.$auth.hasRole('purchase'))
-    // if ([1, 2].includes(data.inquiryStatus) && proxy.$auth.hasRole('purchase')) {
-    //   pageEdit.value = true
-    //   noQuote.value = true
-    // }
-    // if (data.inquiryStatus >= 3) {
-    //   noQuote.value = false
-    // }
+
     if (data.productList) {
       data.productList = data.productList.map((item) => {
         item.edit = false
@@ -629,7 +701,7 @@ function handleAddProduct() {
 }
 // 删除产品
 function handleDeleteOrderItem(item, index) {
-  proxy.$modal.confirm('当前操作不可恢复，是否确认删除序号为"' + (index + 1) + '"产品?').then(function () {
+  proxy.$modal.confirm('当前操作不可恢复，是否确认删除型号为"' + item.productName + '"产品?').then(function () {
     if (item.productId) {
       delProduct(item.productId).then((res) => {
         proxy.$modal.msgSuccess('删除成功')
@@ -655,6 +727,15 @@ function handleEditProduct(index) {
 }
 // 提交订单
 function submitForm(inquiryStatus) {
+  if (inquiryStatus === 5) {
+    proxy.$modal.confirm('当前操作不可恢复，是否确认取消订单？').then(() => {
+      editInquiryStatus({ ...form.value, inquiryStatus }).then((response) => {
+        proxy.$modal.msgSuccess('保存成功')
+        proxy.$tab.closeOpenPage({ path: '/inquiry' })
+      })
+    })
+    return
+  }
   proxy.$refs['orderRef'].validate((valid) => {
     if (valid) {
       if (inquiryStatus === 4) {
@@ -745,6 +826,13 @@ function handleSelectionChange(val) {
   form.value.inquirySelectedCount = val.length
   form.value.inquirySelectedTotalProducts = count
 }
+// 获取历史成交价
+const historyList = ref([])
+function getHistory(row) {
+  quotedHistory(row.productId).then((res) => {
+    historyList.value = res.data
+  })
+}
 </script>
 
 <style lang="scss">
@@ -752,6 +840,22 @@ function handleSelectionChange(val) {
 .purchase-order-detail {
   background: #eee;
   height: 100%;
+
+  .inquiryInfo {
+    .brandInfo {
+      span {
+        display: inline-block;
+        line-height: 50px;
+        vertical-align: middle;
+      }
+    }
+    .inquiryDescription {
+      width: 500px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+  }
+
   .el-container {
     height: 100%;
   }
@@ -785,8 +889,16 @@ function handleSelectionChange(val) {
   }
   .productList {
     .cell {
-      padding: 0 4px 2px;
+      padding: 0 4px 8px;
       // overflow: visible;/
+      .el-table td.el-table__cell div {
+        overflow: visible;
+      }
+      .el-form-item--default .el-form-item__content > span {
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+      }
     }
   }
 

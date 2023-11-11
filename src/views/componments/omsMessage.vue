@@ -1,6 +1,6 @@
 <template>
   <div class="omsMessage">
-    <div class="omsMessage-header --el-font-size-Base">待办</div>
+    <div class="omsMessage-header --el-font-size-Base">消息</div>
 
     <el-scrollbar ref="scrollbarRef" style="height: 100%" @scroll="handleScroll">
       <div class="omsMessage-main" ref="msgRef">

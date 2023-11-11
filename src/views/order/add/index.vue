@@ -7,13 +7,25 @@
           <!-- 默认状态按钮 -->
           <div class="right">
             <el-button type="success" @click="submitForm(0)">保存为草稿</el-button>
-            <el-button type="success" @click="submitForm(1)">申请采购</el-button>
+            <el-button type="success" @click="openPayInfo">申请采购</el-button>
           </div>
         </el-row>
-        <el-form ref="orderRef" :model="form" :rules="rules" label-width="80px" :disabled="false" class="orderForm">
+        <el-form
+          ref="orderRef"
+          :model="form"
+          :rules="rules"
+          :validate-on-rule-change="false"
+          label-width="80px"
+          :disabled="false"
+          class="orderForm"
+        >
           <div class="mt20">
             <el-form-item label="品牌" prop="rtBrand" width="600px">
-              <brandSelect v-model="form.rtBrand" :brandEnable="1"></brandSelect>
+              <brandSelect
+                v-model="form.rtBrand"
+                :extroProps="{ searchValue: 1, brandEnable: 1 }"
+                @change="getSupplierList"
+              ></brandSelect>
             </el-form-item>
             <el-form-item label="订单描述" prop="orderDescription">
               <el-input :rows="3" type="textarea" v-model="form.orderDescription" placeholder="请输入订单描述" />
@@ -24,7 +36,7 @@
           </div>
 
           <!-- 合计 -->
-          <el-row :gutter="20" justify="center">
+          <el-row :gutter="20">
             <el-col :span="12" class="total-price-left">
               <el-card class="total-price-content">
                 <h3 class="ml20">本单合计</h3>
@@ -53,7 +65,7 @@
                       :
                     </template>
 
-                    <el-input v-model="form.orderTaxRate" style="width: 130px" @input="getTotalPrice">
+                    <el-input v-model="form.orderTaxRate" style="width: 130px" @change="getTotalPrice">
                       <template #append>%</template>
                     </el-input>
                   </el-form-item>
@@ -75,16 +87,21 @@
                       </el-popover>
                       :
                     </template>
-                    <el-input v-model="form.orderOtherFee" style="width: 150px" @input="getTotalPrice">
-                      <template #append>元</template>
-                    </el-input>
+                    <span class="mr10">¥</span>
+                    <el-input-number
+                      :controls="false"
+                      :precision="4"
+                      v-model="form.orderOtherFee"
+                      style="width: 150px"
+                      @change="getTotalPrice"
+                    ></el-input-number>
                   </el-form-item>
                 </div>
               </el-card>
             </el-col>
           </el-row>
           <div class="mt20">
-            <el-form-item lable="产品明细">
+            <el-form-item label="产品明细" :disabled="true">
               <el-table
                 :data="form.productList"
                 border
@@ -93,7 +110,7 @@
                 :cell-style="{ 'text-align': 'center' }"
                 style="width: 100%"
               >
-                <el-table-column type="index" width="50" label="序号" fixed="left" />
+                <!-- <el-table-column type="index" width="50" label="序号" fixed="left" /> -->
                 <el-table-column prop="productName" label="型号" fixed="left" width="150">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.productName'" :rules="valueRule">
@@ -108,45 +125,63 @@
                 </el-table-column>
                 <el-table-column prop="productQuantity" label="数量" width="160">
                   <template #default="scope">
-                    <el-input-number v-model="scope.row.productQuantity" :min="1"></el-input-number>
+                    <el-input-number
+                      :precision="0"
+                      :controls="false"
+                      v-model="scope.row.productQuantity"
+                      :min="1"
+                    ></el-input-number>
                   </template>
                 </el-table-column>
                 <el-table-column prop="supplierId" label="供应商" width="150">
                   <template #default="scope">
-                    <el-form-item :prop="'productList.' + scope.$index + '.supplierId'" :rules="valueRule">
-                      <simple-select
-                        v-if="inquiryStatus < 3 || scope.row.edit"
+                    <el-form-item :prop="'productList.' + scope.$index + '.supplierId'">
+                      <simple-select-local
                         v-model="scope.row.supplierId"
-                        :defaultList="scope.row.defaultSupplierList"
-                        :remoteFunction="searchSupplier"
+                        :defaultList="form.supplierList"
                         searchKey="supplierName"
                         searchValue="supplierId"
-                        :supplierEnable="1"
-                        :brandId="form.rtBrand ? form.rtBrand.brandId : null"
                       />
-                      <span v-else>{{ scope.row.supplierName }}</span>
                     </el-form-item>
                   </template>
                 </el-table-column>
                 <el-table-column prop="productPurchasePrice" label="未税单价" width="100">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.productPurchasePrice'" :rules="valueRule">
-                      <el-input
+                      <el-input-number
+                        :controls="false"
+                        :precision="4"
                         v-if="inquiryStatus < 3 || scope.row.edit"
                         v-model="scope.row.productPurchasePrice"
-                        @input="getPurchaseTotalPrice(scope.row)"
-                      ></el-input>
+                        @change="getPurchaseTotalPrice(scope.row)"
+                      ></el-input-number>
                       <span v-else>{{ scope.row.productPurchasePrice }}</span>
                     </el-form-item>
                   </template>
                 </el-table-column>
+                <el-table-column prop="productPurchaseMethod" label="采购方式" width="100">
+                  <template #default="scope">
+                    <el-form-item
+                      v-if="inquiryStatus < 3 || scope.row.edit"
+                      :prop="'productList.' + scope.$index + '.productPurchaseMethod'"
+                      :rules="valueRule"
+                    >
+                      <el-input v-model="scope.row.productPurchaseMethod"></el-input>
+                    </el-form-item>
+                    <span v-else>{{ scope.row.productPurchaseMethod }}</span>
+                  </template>
+                </el-table-column>
                 <el-table-column prop="productReferencePrice" label="建议售价" width="100">
                   <template #default="scope">
-                    <el-input
-                      v-if="inquiryStatus < 3 || scope.row.edit"
-                      v-model="scope.row.productReferencePrice"
-                    ></el-input>
-                    <span v-else>{{ scope.row.productReferencePrice }}</span>
+                    <el-form-item>
+                      <el-input-number
+                        :controls="false"
+                        :precision="4"
+                        v-if="inquiryStatus < 3 || scope.row.edit"
+                        v-model="scope.row.productReferencePrice"
+                      ></el-input-number>
+                      <span v-else>{{ scope.row.productReferencePrice }}</span>
+                    </el-form-item>
                   </template>
                 </el-table-column>
                 <el-table-column prop="productPurchaseTotalPrice" label="采购总价" width="100">
@@ -185,18 +220,6 @@
                     </div>
                   </template>
                 </el-table-column>
-                <el-table-column prop="productPurchaseMethod" label="采购方式" width="100">
-                  <template #default="scope">
-                    <el-form-item
-                      v-if="inquiryStatus < 3 || scope.row.edit"
-                      :prop="'productList.' + scope.$index + '.productPurchaseMethod'"
-                      :rules="valueRule"
-                    >
-                      <el-input v-model="scope.row.productPurchaseMethod"></el-input>
-                    </el-form-item>
-                    <span v-else>{{ scope.row.productPurchaseMethod }}</span>
-                  </template>
-                </el-table-column>
                 <el-table-column
                   label="操作"
                   fixed="right"
@@ -227,25 +250,27 @@
         <omsMessage></omsMessage>
       </el-aside>
     </el-container>
+    <payInfoDialog ref="payInfoDialogRef" @submit="submitForm" :ordersupplierList="form.supplierList" />
   </div>
 </template>
 
 <script setup name="Detail">
 import { addOrder } from '@/api/order'
-import { onBeforeMount, reactive } from 'vue'
+import { nextTick, onBeforeMount, onMounted, reactive } from 'vue'
 import omsMessage from '@/views/componments/omsMessage'
 import brandSelect from '@/views/componments/brandSelect'
 import { deepClone } from '@/utils/index'
-import { searchSupplier } from '@/api/brand'
-
-import SimpleSelect from '@/components/SimpleSelect'
+import SimpleSelectLocal from '@/components/SimpleSelectLocal'
 import { getToken } from '@/utils/auth'
 import { getFloat } from '@/utils/index'
+import { listBrandRelatedSupplier } from '@/api/supplier'
+import payInfoDialog from '../edit/payInfoDialog.vue'
+
 const { proxy } = getCurrentInstance()
 const inquiryStatus = ref(0)
-const userHasRole = ref(false)
 const base = import.meta.env.VITE_APP_BASE_API
 const headers = ref({ Authorization: 'Bearer ' + getToken() })
+const ordersupplierList = ref([])
 
 // 产品默认对象
 const defaulfItem = {
@@ -264,7 +289,7 @@ const originForm = {
 const data = reactive({
   // 表单参数
   form: JSON.parse(JSON.stringify(originForm)),
-  valueRule: { required: true, message: '请输入型号', trigger: 'change' },
+  valueRule: { required: true, message: '请输入', trigger: 'change' },
   // 表单校验
   rules: {
     rtBrand: [{ required: true, message: '请选择品牌', trigger: 'change' }],
@@ -273,9 +298,6 @@ const data = reactive({
 })
 const { form, rules, valueRule } = toRefs(data)
 
-onBeforeMount(() => {
-  userHasRole.value = proxy.$auth.hasRoleOr(['admin', 'purchase'])
-})
 // 计算采购总价
 function getPurchaseTotalPrice(item) {
   item.productPurchaseTotalPrice = getFloat(item.productPurchasePrice * item.productQuantity, 4)
@@ -304,7 +326,7 @@ function handleAddProduct() {
 //删除型号
 function handleDeleteOrderItem(index) {
   proxy.$modal
-    .confirm('是否确认删除序号为"' + (index + 1) + '"产品?')
+    .confirm('当前操作不可恢复，是否确认删除型号为"' + item.productName + '"产品?')
     .then(function () {
       form.value.productList.splice(index, 1)
     })
@@ -315,23 +337,30 @@ function handleDeleteOrderItem(index) {
 }
 
 // 提交订单
-function submitForm(orderStatus) {
+function submitForm(orderStatus, payment) {
   proxy.$refs['orderRef'].validate((valid) => {
     if (valid) {
-      form.value.orderStatus = orderStatus + ''
-      addOrder(form.value)
-        .then((response) => {
-          if (orderStatus === 1) {
-            proxy.$modal.msgSuccess('保存成功')
-          } else {
-            proxy.$modal.msgSuccess('新增成功')
-          }
+      for (let i = 0; i < form.value.productList.length; i++) {
+        const item = form.value.productList[i]
+        if (!item.supplierId) {
+          return proxy.$modal.msgError('请选择型号为：' + item.productName + '的供应商')
+        }
+      }
 
-          proxy.$tab.closeOpenPage({ path: '/order' })
-        })
-        .catch((err) => {
-          proxy.$modal.msgError(err)
-        })
+      if (orderStatus === 2) {
+        form.value.paymentList = payment
+      }
+
+      form.value.orderStatus = orderStatus + ''
+      addOrder(form.value).then((response) => {
+        if (orderStatus === 1) {
+          proxy.$modal.msgSuccess('保存成功')
+        } else {
+          proxy.$modal.msgSuccess('新增成功')
+        }
+
+        proxy.$tab.closeOpenPage({ path: '/order' })
+      })
     }
   })
 }
@@ -358,6 +387,17 @@ function handleFileRemove(uploadFile) {
     })
     .catch(() => false)
 }
+// 获取品牌关联的供应商
+function getSupplierList(val) {
+  listBrandRelatedSupplier({ brandId: val.brandId }).then((res) => {
+    console.log(res)
+    form.value.supplierList = res
+  })
+}
+// 申请付款
+function openPayInfo() {
+  proxy.$refs.payInfoDialogRef.show(form.value.piSn)
+}
 </script>
 
 <style lang="scss">
@@ -370,7 +410,7 @@ function handleFileRemove(uploadFile) {
   }
   .productList {
     .cell {
-      padding: 0 4px 2px;
+      padding: 0 4px 12px;
       overflow: visible;
     }
   }

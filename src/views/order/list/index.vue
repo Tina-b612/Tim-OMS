@@ -96,7 +96,7 @@
         </el-tabs>
         <!-- 列表 -->
         <el-table v-loading="loading" :data="orderList" @row-click="handleUpdate">
-          <el-table-column type="index" label="序号" width="60" />
+          <!-- <el-table-column type="index" label="序号" width="60" /> -->
           <el-table-column label="订单号" align="center" prop="orderSn" />
           <el-table-column label="询盘单号" align="center" prop="inquirySn" />
           <el-table-column label="品牌" align="center" prop="brandName" />

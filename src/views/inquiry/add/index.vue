@@ -2,10 +2,18 @@
   <div class="common-layout purchase-order-detail">
     <el-container>
       <el-main class="purchase-order-main">
+        <!-- 订单操作按钮 -->
+        <el-row class="flex-center-right mt20">
+          <!-- 默认状态按钮 -->
+          <div class="right">
+            <el-button type="success" @click="submitForm(0)">保存为草稿</el-button>
+            <el-button type="success" @click="submitForm(1)">发送询价</el-button>
+          </div>
+        </el-row>
         <el-form ref="orderRef" :model="form" :rules="rules" label-width="80px" :disabled="false">
           <div class="mt20">
             <el-form-item label="品牌" prop="rtBrand" width="600px">
-              <brandSelect v-model="form.rtBrand" :brandEnable="1"></brandSelect>
+              <brandSelect v-model="form.rtBrand" :extroProps="{ brandEnable: 1 }"></brandSelect>
             </el-form-item>
             <el-form-item label="询盘描述" prop="inquiryDescription">
               <el-input :rows="3" type="textarea" v-model="form.inquiryDescription" placeholder="请输入询盘描述" />
@@ -21,7 +29,7 @@
                 :cell-style="{ 'text-align': 'center' }"
                 style="width: 100%"
               >
-                <el-table-column type="index" width="50" label="序号" />
+                <!-- <el-table-column type="index" width="50" label="序号" /> -->
                 <el-table-column prop="productName" label="型号*">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.productName'" :rules="valueRule">
@@ -36,7 +44,12 @@
                 </el-table-column>
                 <el-table-column prop="productQuantity" label="数量">
                   <template #default="scope">
-                    <el-input-number v-model="scope.row.productQuantity" :min="1"></el-input-number>
+                    <el-input-number
+                      :controls="false"
+                      :precision="0"
+                      v-model="scope.row.productQuantity"
+                      :min="1"
+                    ></el-input-number>
                   </template>
                 </el-table-column>
                 <el-table-column prop="salesFileList" label="销售附件">
@@ -70,8 +83,6 @@
           </div>
         </el-form>
         <el-row class="bgWhite flex-center-right btn-box">
-          <el-button type="success" @click="submitForm(0)">保存为草稿</el-button>
-          <el-button type="success" @click="submitForm(1)">发送询价</el-button>
           <el-button type="primary" @click="handleAddProduct()">添加产品</el-button>
         </el-row>
       </el-main>
@@ -84,7 +95,7 @@
 
 <script setup name="Detail">
 import { addInquiry } from '@/api/inquiry'
-import { onBeforeMount, reactive } from 'vue'
+import { onBeforeMount, reactive, watch } from 'vue'
 import omsMessage from '@/views/componments/omsMessage'
 import brandSelect from '@/views/componments/brandSelect'
 import { deepClone } from '@/utils/index'
@@ -132,7 +143,7 @@ function handleAddProduct() {
 //删除型号
 function handleDeleteOrderItem(index) {
   proxy.$modal
-    .confirm('是否确认删除序号为"' + (index + 1) + '"产品?')
+    .confirm('当前操作不可恢复，是否确认删除型号为"' + item.productName + '"产品?')
     .then(function () {
       form.value.productList.splice(index, 1)
     })

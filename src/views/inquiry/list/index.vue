@@ -77,7 +77,7 @@
       <div class="inquiry-order-list">
         <!-- 列表分类 -->
         <el-tabs v-model="activeName" type="card" class="demo-tabs" @tab-click="handleTabClick">
-          <el-tab-pane label="全部" name="0"></el-tab-pane>
+          <el-tab-pane label="全部" name=""></el-tab-pane>
           <el-tab-pane
             v-for="item in stateNumber"
             :label="
@@ -90,7 +90,7 @@
         </el-tabs>
         <!-- 列表 -->
         <el-table v-loading="loading" :data="orderList" @row-click="handleUpdate">
-          <el-table-column type="index" label="序号" width="60" />
+          <!-- <el-table-column type="index" label="序号" width="60" /> -->
           <el-table-column label="询盘单号" align="center" prop="inquirySn" />
           <el-table-column label="品牌" align="center" prop="brandName" />
           <el-table-column label="采购负责人" align="center" prop="purchaseUserName" />
@@ -111,20 +111,11 @@
               <span>{{ parseTime(scope.row.inquiryStatusUpdateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+          <!-- <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template v-slot="scope">
-              <el-button
-                size="small"
-                type="primary"
-                link
-                icon="edit"
-                @click="handleUpdate(scope.row)"
-                v-hasPermi="['purchase:order:edit']"
-              >
-                修改
-              </el-button>
+              <el-button size="small" type="primary" link icon="edit" @click="handleUpdate(scope.row)">查看</el-button>
             </template>
-          </el-table-column>
+          </el-table-column> -->
         </el-table>
 
         <pagination
@@ -157,7 +148,7 @@ import SimpleSelect from '@/components/SimpleSelect'
 
 import defaultLogo from '@/assets/images/default.png'
 
-const activeName = ref('0')
+const activeName = ref('')
 
 const handleTabClick = (tab) => {
   queryParams.value.inquiryStatus = tab.paneName
