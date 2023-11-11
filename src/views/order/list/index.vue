@@ -31,15 +31,23 @@
             placeholder="请输入品牌名称"
           />
         </el-form-item>
-        <el-form-item label="询盘单号" prop="inquirySn">
+        <el-form-item label="订单号" prop="orderSn">
           <el-input
-            v-model="queryParams.inquirySn"
-            placeholder="请输入询盘单号"
+            v-model="queryParams.orderSn"
+            placeholder="请输入订单号"
             clearable
             @keyup.enter.native="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="订单状态更新时间" prop="inquiryStateUpdateTime">
+        <el-form-item label="询盘编号" prop="inquirySn">
+          <el-input
+            v-model="queryParams.inquirySn"
+            placeholder="请输入询盘编号"
+            clearable
+            @keyup.enter.native="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="订单状态更新时间" prop="orderStatusUpdateTime">
           <el-date-picker
             v-model="queryParams.inquiryStateUpdateTime"
             style="width: 240px"
@@ -50,7 +58,7 @@
             end-placeholder="结束日期"
           ></el-date-picker>
         </el-form-item>
-        <el-form-item label="订单创建时间" prop="inquiryCreateTime">
+        <el-form-item label="订单创建时间" prop="orderCreateTime">
           <el-date-picker
             v-model="queryParams.inquiryCreateTime"
             style="width: 240px"
@@ -69,7 +77,7 @@
       <!-- 操作按钮 -->
       <el-row :gutter="10" class="mb8 mt10">
         <el-col :span="1.5">
-          <el-button type="success" icon="Plus" v-hasRole="['sales', 'admin']" @click="handleAdd">创建询盘</el-button>
+          <el-button type="success" icon="Plus" v-hasRole="['purchase']" @click="handleAdd">创建订单</el-button>
         </el-col>
         <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
       </el-row>
@@ -81,34 +89,38 @@
           <el-tab-pane
             v-for="item in stateNumber"
             :label="
-              item.inquiryStatusCount
-                ? inquiry_status_map[item.inquiryStatus].label + `（${item.inquiryStatusCount}）`
-                : ''
+              item.orderStatusCount ? inquiry_status_map[item.orderStatus].label + `（${item.orderStatusCount}）` : ''
             "
-            :name="inquiry_status_map[item.inquiryStatus].value"
+            :name="inquiry_status_map[item.orderStatus].value"
           ></el-tab-pane>
         </el-tabs>
         <!-- 列表 -->
         <el-table v-loading="loading" :data="orderList" @row-click="handleUpdate">
           <el-table-column type="index" label="序号" width="60" />
+          <el-table-column label="订单号" align="center" prop="orderSn" />
           <el-table-column label="询盘单号" align="center" prop="inquirySn" />
           <el-table-column label="品牌" align="center" prop="brandName" />
           <el-table-column label="采购负责人" align="center" prop="purchaseUserName" />
           <el-table-column label="销售负责人" align="center" prop="salesUserName" />
-          <el-table-column label="未税总价" align="center" prop="inquiryTotalPriceNoTax" />
-          <el-table-column label="订单状态" align="center" prop="inquiryStatus">
+          <el-table-column label="未税总价" align="center" prop="orderTotalPriceNoTax">
             <template #default="scope">
-              <dict-tag :options="inquiry_status" :value="scope.row.inquiryStatus" />
+              <span v-if="scope.row.orderTotalPriceNoTax">¥{{ scope.row.orderTotalPriceNoTax }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="订单创建时间" align="center" prop="inquiryCreateTime" width="180">
-            <template v-slot="scope">
-              <span>{{ parseTime(scope.row.inquiryCreateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+          <!-- <el-table-column label="含税总价" align="center" prop="taxedTotalAmount" /> -->
+          <el-table-column label="订单状态" align="center" prop="orderStatus">
+            <template #default="scope">
+              <dict-tag :options="inquiry_status" :value="scope.row.orderStatus" />
             </template>
           </el-table-column>
-          <el-table-column label="订单状态更新时间" align="center" prop="inquiryStatusUpdateTime" width="180">
+          <el-table-column label="订单创建时间" align="center" prop="orderCreateTime" width="180">
             <template v-slot="scope">
-              <span>{{ parseTime(scope.row.inquiryStatusUpdateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+              <span>{{ parseTime(scope.row.orderCreateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="订单状态更新时间" align="center" prop="orderStatusUpdateTime" width="180">
+            <template v-slot="scope">
+              <span>{{ parseTime(scope.row.orderStatusUpdateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -149,7 +161,7 @@
 
 <script setup name="List">
 import { searchUser, searchBrand } from '@/api/brand'
-import { listInquiry, getInquiryCount, getInquiry, delInquiry, addInquiry, updateInquiry } from '@/api/inquiry'
+import { listOrder, getOrderCount, getOrder, delOrder, addOrder, updateOrder } from '@/api/order'
 import { reactive } from 'vue'
 import OrderEditDialog from './orderEditDialog'
 import omsMessage from '@/views/componments/omsMessage'
@@ -160,7 +172,7 @@ import defaultLogo from '@/assets/images/default.png'
 const activeName = ref('0')
 
 const handleTabClick = (tab) => {
-  queryParams.value.inquiryStatus = tab.paneName
+  queryParams.value.orderStatus = tab.paneName
   getList()
 }
 
@@ -244,7 +256,7 @@ const { queryParams, form, rules } = toRefs(data)
 const stateNumber = ref([])
 const inquiry_status_map = ref({})
 function getStateNumber() {
-  getInquiryCount().then((res) => {
+  getOrderCount().then((res) => {
     inquiry_status_map.value = inquiry_status.value.reduce((target, key, index) => {
       target[key.value] = key
       return target
@@ -261,7 +273,7 @@ function getList() {
     daterangeOrderStateUpdateTime.value,
     'daterangeOrderStateUpdateTime'
   )
-  listInquiry(proxy.addDateRange(pramers, createTime.value, 'CreateTime'))
+  listOrder(proxy.addDateRange(pramers, createTime.value, 'CreateTime'))
     .then((response) => {
       orderList.value = response.rows
       total.value = response.total
@@ -289,11 +301,15 @@ function resetQuery() {
 
 /** 新增按钮操作 */
 function handleAdd() {
-  proxy.$router.push({ path: 'inquiry/add' })
+  proxy.$router.push({ path: 'order/add' })
 }
 /** 修改按钮操作 */
 function handleUpdate(row) {
-  proxy.$router.push({ path: 'inquiry/edit', query: { id: row.inquiryId } })
+  if (row.orderStatus >= 1) {
+    proxy.$router.push({ path: 'order/edit', query: { id: row.orderId } })
+  } else {
+    proxy.$router.push({ path: 'order/edit', query: { id: row.orderId } })
+  }
 }
 
 getList()

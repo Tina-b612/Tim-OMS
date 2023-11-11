@@ -41,10 +41,7 @@ import defaultLogo from '@/assets/images/default.png'
 const emit = defineEmits()
 const props = defineProps({
   modelValue: [String, Object],
-  orderState: {
-    type: [String, Number],
-    default: 1,
-  },
+  brandEnable: Number,
   disabled: Boolean,
 })
 const selectLoading = ref(false)
@@ -68,7 +65,7 @@ watch(
 function handleSearchBrandList(brandName) {
   if (brandName) {
     selectLoading.value = true
-    searchBrand({ brandName: brandName }).then((response) => {
+    searchBrand({ brandName: brandName, brandEnable: props.brandEnable }).then((response) => {
       selectLoading.value = false
       brandSearchList.value = response
     })

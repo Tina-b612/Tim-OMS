@@ -33,6 +33,8 @@ const props = defineProps({
   searchValue: String,
   placeholder: String,
   defaultList: Array,
+  supplierEnable: Number,
+  brandId: Number,
 })
 const selectLoading = ref(false)
 const searchList = ref([])
@@ -48,7 +50,14 @@ onMounted(() => {
 function handleSearch(seachValue) {
   if (seachValue) {
     selectLoading.value = true
-    props.remoteFunction({ [props.searchKey]: seachValue }).then((response) => {
+    let request = { [props.searchKey]: seachValue }
+    if (props.supplierEnable) {
+      request.supplierEnable = props.supplierEnable
+    }
+    if (props.brandId) {
+      request.brandId = props.brandId
+    }
+    props.remoteFunction(request).then((response) => {
       selectLoading.value = false
       searchList.value = response
     })

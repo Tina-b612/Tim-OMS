@@ -4,21 +4,15 @@
       <el-main class="purchase-order-main">
         <el-form ref="orderRef" :model="form" :rules="rules" label-width="80px" :disabled="false">
           <div class="mt20">
-            <el-form-item label="品牌" prop="rtBrand" width="600px" v-if="![5, 7].includes(orderState)">
-              <brandSelect v-model="form.rtBrand" orderState></brandSelect>
+            <el-form-item label="品牌" prop="rtBrand" width="600px">
+              <brandSelect v-model="form.rtBrand" :brandEnable="1"></brandSelect>
             </el-form-item>
-            <el-form-item label="询盘描述" prop="inquiryDescription" v-if="![5, 7].includes(orderState)">
-              <el-input
-                :rows="3"
-                type="textarea"
-                v-model="form.inquiryDescription"
-                placeholder="请输入询盘描述"
-                :disabled="orderState == 5 || orderState == 7"
-              />
+            <el-form-item label="询盘描述" prop="inquiryDescription">
+              <el-input :rows="3" type="textarea" v-model="form.inquiryDescription" placeholder="请输入询盘描述" />
             </el-form-item>
           </div>
           <div class="mt20">
-            <el-form-item label="产品明细" v-if="orderState != 5 && orderState != 7">
+            <el-form-item lab>
               <el-table
                 :data="form.productList"
                 border
@@ -59,13 +53,7 @@
                     </el-upload>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  v-if="orderState != 5 && orderState != 7"
-                  label="操作"
-                  align="center"
-                  class-name="small-padding fixed-width"
-                  width="80"
-                >
+                <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="80">
                   <template #default="scope">
                     <el-tooltip content="删除" placement="top" v-if="scope.row.roleId !== 1">
                       <el-button
@@ -82,11 +70,9 @@
           </div>
         </el-form>
         <el-row class="bgWhite flex-center-right btn-box">
-          <el-button v-show="[0, 6].includes(orderState)" type="success" @click="submitForm(0)">保存为草稿</el-button>
-          <el-button v-show="[0, 6].includes(orderState)" type="success" @click="submitForm(1)">发送询价</el-button>
-          <el-button v-show="[0, 6].includes(orderState)" type="primary" @click="handleAddProduct()">
-            添加产品
-          </el-button>
+          <el-button type="success" @click="submitForm(0)">保存为草稿</el-button>
+          <el-button type="success" @click="submitForm(1)">发送询价</el-button>
+          <el-button type="primary" @click="handleAddProduct()">添加产品</el-button>
         </el-row>
       </el-main>
       <el-aside class="message-containar">
