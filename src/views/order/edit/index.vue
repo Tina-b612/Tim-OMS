@@ -6,9 +6,9 @@
         <div class="order-detail-header">
           <div class="desc">
             <dict-tag style="display: inline" :options="order_status" :value="form.orderStatus" />
-            <span>询盘单号: {{ form.inquirySn }}</span>
-            <span>采购单号: {{ form.orderSn }}</span>
-            <span>销售负责人: {{ form.salesUserName }}</span>
+            <span>询盘单号: {{ form.inquirySn || '-' }}</span>
+            <span>采购单号: {{ form.orderSn || '-' }}</span>
+            <span>销售负责人: {{ form.salesUserName || '-' }}</span>
             <span>采购负责人: {{ form.purchaseUserName || '未分配' }}</span>
             <span v-if="orderStatus <= 5">
               当前状态等待时长:
@@ -34,16 +34,13 @@
           </div>
           <!-- 默认状态按钮 -->
           <div class="right" v-show="!pageEdit">
-            <el-button
-              type="success"
-              v-show="(orderStatus >= 3 && proxy.$auth.hasRole('purchase')) || orderStatus === 1"
-              @click="pageEdit = true"
-            >
-              编辑
-            </el-button>
+            <el-button type="success" v-show="orderStatus === 1" @click="pageEdit = true">编辑</el-button>
             <el-button type="success" @click="submitForm(0)" v-if="!orderStatus">保存为草稿</el-button>
-            <el-button type="success" @click="submitForm(4)" v-if="[0].includes(orderStatus)">申请采购</el-button>
-            <el-button type="danger" v-if="[0, 1, 2, 3].includes(orderStatus)">取消</el-button>
+            <!-- <el-button type="success" @click="submitForm(0)" v-if="!orderStatus">申请采购</el-button> -->
+            <el-button type="success" @click="openPayInfo" v-if="[0, 1].includes(orderStatus)">申请付款</el-button>
+            <el-button type="success" @click="submitForm(5)" v-if="[4].includes(orderStatus)">已签收</el-button>
+            <el-button type="success" @click="submitForm(6)" v-if="[4].includes(orderStatus)">异常签收</el-button>
+            <el-button type="danger" @click="submitForm(7)" v-if="![7].includes(orderStatus)">取消</el-button>
           </div>
         </el-row>
         <!-- 表单 -->
@@ -56,39 +53,34 @@
                 <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png" />
               </el-avatar>
               <span class="ml20">{{ form.rtBrand.brandName }}</span>
-              <div style="margin-left: 80px" v-if="!pageEdit">
-                <span>询盘描述：</span>
-                <span>{{ form.inquiryDescription }}</span>
+              <div style="margin-left: 80px" v-if="![0].includes(orderStatus)">
+                <span>订单描述：</span>
+                <span>{{ form.orderDescription }}</span>
               </div>
             </div>
 
             <el-form-item
               class="mt20"
-              label="询盘描述"
-              prop="inquiryDescription"
-              v-if="pageEdit && ![5, 7].includes(orderStatus)"
+              label="订单描述"
+              prop="orderDescription"
+              v-if="pageEdit || [0].includes(orderStatus)"
             >
-              <el-input
-                :rows="3"
-                type="textarea"
-                v-model="form.inquiryDescription"
-                placeholder="请输入询盘描述"
-                :disabled="!pageEdit"
-              />
+              <el-input :rows="3" type="textarea" v-model="form.orderDescription" placeholder="请输入订单描述" />
             </el-form-item>
           </div>
           <!-- 合计 -->
-          <el-row :gutter="20" v-if="orderStatus >= 3 || proxy.$auth.hasRole('purchase')">
-            <el-col :span="12" class="total-price-left">
-              <div class="total-price-content">
-                <h3 class="ml20">本单合计</h3>
-                <div class="flex-center-left ml20 mt20 totalPrice" v-if="![0].includes(orderStatus)">
-                  <div>未税总价：¥ {{ form.inquiryTotalPriceNoTax || 0 }}</div>
-                  <div class="ml20">税金：¥ {{ form.inquiryTax || 0 }}</div>
-                  <div class="ml20">总价：¥ {{ form.inquiryTotalPrice || 0 }}</div>
+          <el-row :gutter="20">
+            <!-- 订单合计 -->
+            <el-col :span="10" class="total-price-left">
+              <el-card class="total-price-content" header="本单合计">
+                <!-- <h3 class="ml20">本单合计</h3> -->
+                <div class="flex-center-left ml20 totalPrice">
+                  <div>未税总价：¥ {{ form.orderTotalPriceNoTax || 0 }}</div>
+                  <div class="ml20">税金：¥ {{ form.orderTax || 0 }}</div>
+                  <div class="ml20">总价：¥ {{ form.orderTotalPrice || 0 }}</div>
                 </div>
                 <div class="flex-center-left mt10">
-                  <el-form-item label="税率" prop="inquiryTaxRate" v-if="![0].includes(orderStatus)">
+                  <el-form-item label="税率" prop="orderTaxRate">
                     <template #label>
                       税率
                       <el-popover
@@ -108,16 +100,16 @@
                     </template>
 
                     <el-input
-                      v-if="proxy.$auth.hasRole('purchase') && pageEdit"
-                      v-model="form.inquiryTaxRate"
+                      v-if="pageEdit || [0].includes(orderStatus)"
+                      v-model="form.orderTaxRate"
                       style="width: 130px"
                       @input="getTotalPrice"
                     >
                       <template #append>%</template>
                     </el-input>
-                    <span v-else>{{ form.inquiryTaxRate || 0 }} %</span>
+                    <span v-else>{{ form.orderTaxRate || 0 }} %</span>
                   </el-form-item>
-                  <el-form-item label="杂费" prop="inquiryOtherFee" v-if="![0].includes(orderStatus)">
+                  <el-form-item label="杂费" prop="orderOtherFee">
                     <template #label>
                       杂费
                       <el-popover
@@ -136,35 +128,118 @@
                       :
                     </template>
                     <el-input
-                      v-if="proxy.$auth.hasRole('purchase') && pageEdit"
-                      v-model="form.inquiryOtherFee"
+                      v-if="pageEdit || [0].includes(orderStatus)"
+                      v-model="form.orderOtherFee"
                       style="width: 150px"
                       @input="getTotalPrice"
                     >
                       <template #append>元</template>
                     </el-input>
-                    <span v-else>¥ {{ form.inquiryOtherFee || 0 }}</span>
+                    <span v-else>¥ {{ form.orderOtherFee || 0 }}</span>
                   </el-form-item>
                 </div>
-              </div>
+              </el-card>
             </el-col>
-            <el-col :span="12" class="total-price-right" v-if="proxy.$auth.hasRole('sales') || [3].includes(orderId)">
-              <div class="total-price-content">
-                <h3 class="ml20">勾选产品合计</h3>
-                <div class="ml20 totalPrice" v-if="![0].includes(orderStatus)">
-                  <el-row :gutter="20">
-                    <el-col :span="12">
-                      <div>已选产品件数：¥ {{ form.inquirySelectedCount || 0 }}</div>
-                      <div>已选产品总计：¥ {{ form.inquirySelectedTotalProducts || 0 }}</div>
-                    </el-col>
-                    <el-col :span="12">
-                      <div>未税总价：¥ {{ form.inquirySelectedTotalPriceNoTax || 0 }}</div>
-                      <div>税金：¥ {{ form.inquirySelectedTax || 0 }}</div>
-                      <div class="primary blod">已选产品总价：¥ {{ form.inquirySelectedTotalPrice || 0 }}</div>
-                    </el-col>
-                  </el-row>
-                </div>
-              </div>
+            <!-- 付款合同 暂时没做 -->
+            <!-- 付款列表 -->
+            <el-col :span="14" class="total-price-right" v-if="orderStatus > 1">
+              <el-card class="total-price-content" header="付款列表">
+                <!-- <h3 class="ml20">付款列表</h3> -->
+                <el-table
+                  :data="form.paymentList"
+                  border
+                  :header-cell-style="{ 'text-align': 'center' }"
+                  :cell-style="{ 'text-align': 'center' }"
+                  style="width: 100%"
+                >
+                  <el-table-column type="expand">
+                    <template #default="scope">
+                      <el-descriptions size="small" style="padding: 5px 20px">
+                        <el-descriptions-item label="付款编号">{{ scope.row.paymentSn || '-' }}</el-descriptions-item>
+                        <el-descriptions-item label="供应商">
+                          {{ scope.row.paymentPayeeName || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="开户行">
+                          {{ scope.row.paymentBankName || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="收款账号">
+                          {{ scope.row.paymentPayeeAccount || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="付款方式">
+                          {{ scope.row.paymentMethod || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="付款描述">
+                          {{ scope.row.paymentDescription || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="付款申请时间">
+                          {{ scope.row.paymentApplyTime || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="付款完成时间">
+                          {{ scope.row.paymentFinishTime || '-' }}
+                        </el-descriptions-item>
+                      </el-descriptions>
+                    </template>
+                  </el-table-column>
+                  <el-table-column type="index" width="60" label="序号" />
+                  <el-table-column label="供应商" prop="orderSn" />
+                  <el-table-column label="金额" prop="paymentAmount" />
+                  <el-table-column label="采购合同" prop="paymentContractFileList">
+                    <template #default="scope">
+                      <div v-for="item in scope.row.paymentContractFileList">{{ item.fileName }}</div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="付款状态" prop="paymentContractFileList">
+                    <template #default="scope">
+                      <dict-tag style="display: inline" :options="payment_status" :value="scope.row.paymentStatus" />
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="付款证明" prop="orderSn">
+                    <template #default="scope">
+                      <el-upload
+                        v-if="!scope.row.paymentStatus"
+                        v-model:file-list="scope.row.paymentProveFileList"
+                        :action="base + '/system/info/add'"
+                        :limit="1"
+                        :headers="headers"
+                        accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
+                        :on-success="handleUploadSuccess"
+                        :on-preview="handleFilePreview"
+                      >
+                        <el-icon><Plus /></el-icon>
+                      </el-upload>
+                      <div v-else>
+                        <el-button link type="primary">
+                          <a :href="scope.row.paymentContractFileList[0].url" target="_blank">
+                            {{ scope.row.paymentContractFileList[0].fileName }}
+                          </a>
+                        </el-button>
+                      </div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作" prop="orderSn">
+                    <template #default="scope">
+                      <el-tooltip content="确认付款" placement="top">
+                        <el-button
+                          type="primary"
+                          icon="Sell"
+                          link
+                          @click="handlePay(scope.row)"
+                          :disabled="scope.row.paymentStatus !== 0"
+                        ></el-button>
+                      </el-tooltip>
+                      <el-tooltip content="拒绝付款" placement="top">
+                        <el-button
+                          type="danger"
+                          icon="SoldOut"
+                          link
+                          :disabled="scope.row.paymentStatus !== 0"
+                          @click="handleCanclePay(scope.row)"
+                        ></el-button>
+                      </el-tooltip>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </el-card>
             </el-col>
           </el-row>
           <el-form-item
@@ -194,7 +269,12 @@
               >
                 <el-table-column type="selection" width="55" v-if="orderStatus === 3" />
                 <el-table-column type="index" width="50" label="序号" fixed="left" />
-                <el-table-column prop="productName" label="型号" fixed="left" :width="pageEdit ? 160 : 'auto'">
+                <el-table-column
+                  prop="productName"
+                  label="型号"
+                  fixed="left"
+                  :width="[0].includes(orderStatus) || pageEdit ? 160 : 'auto'"
+                >
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.productName'" :rules="valueRule">
                       <el-input
@@ -210,7 +290,7 @@
                   prop="productDescription"
                   label="产品描述"
                   :show-overflow-tooltip="true"
-                  :width="![0, 1].includes(orderStatus) && pageEdit ? 160 : 'auto'"
+                  :width="[0].includes(orderStatus) || pageEdit ? 160 : 'auto'"
                 >
                   <template #default="scope">
                     <el-input
@@ -224,7 +304,7 @@
                 <el-table-column
                   prop="productQuantity"
                   label="数量"
-                  :width="![0, 1].includes(orderStatus) && pageEdit ? 160 : 'auto'"
+                  :width="[0].includes(orderStatus) || pageEdit ? 160 : 'auto'"
                 >
                   <template #default="scope">
                     <el-input-number
@@ -260,7 +340,7 @@
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.supplierId'" :rules="valueRule">
                       <simple-select
-                        v-if="orderStatus < 3 || scope.row.edit"
+                        v-if="!orderStatus || scope.row.edit"
                         v-model="scope.row.supplierId"
                         :defaultList="scope.row.defaultSupplierList"
                         :remoteFunction="searchSupplier"
@@ -281,7 +361,7 @@
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.productPurchasePrice'" :rules="valueRule">
                       <el-input
-                        v-if="orderStatus < 3 || scope.row.edit"
+                        v-if="!orderStatus || scope.row.edit"
                         v-model="scope.row.productPurchasePrice"
                         @input="getPurchaseTotalPrice(scope.row)"
                       ></el-input>
@@ -297,14 +377,14 @@
                 >
                   <template #default="scope">
                     <el-input
-                      v-if="orderStatus < 3 || scope.row.edit"
+                      v-if="!orderStatus || scope.row.edit"
                       v-model="scope.row.productReferencePrice"
                     ></el-input>
                     <span v-else>{{ scope.row.productReferencePrice }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column
-                  prop="productPurchaseTotalPrice"
+                  prop="orderPurchaseTotalPrice"
                   label="采购总价"
                   v-if="orderStatus >= 3 || proxy.$auth.hasRole('purchase')"
                   width="100"
@@ -320,10 +400,7 @@
                   width="100"
                 >
                   <template #default="scope">
-                    <el-input
-                      v-if="orderStatus < 3 || scope.row.edit"
-                      v-model="scope.row.productDeliveryTime"
-                    ></el-input>
+                    <el-input v-if="!orderStatus || scope.row.edit" v-model="scope.row.productDeliveryTime"></el-input>
                     <span v-else>{{ scope.row.productDeliveryTime }}</span>
                   </template>
                 </el-table-column>
@@ -335,7 +412,7 @@
                 >
                   <template #default="scope">
                     <el-upload
-                      v-if="orderStatus < 3 || scope.row.edit"
+                      v-if="!orderStatus || scope.row.edit"
                       v-model:file-list="scope.row.purchaseFileList"
                       :action="base + '/system/info/add'"
                       :limit="3"
@@ -362,7 +439,7 @@
                 >
                   <template #default="scope">
                     <el-form-item
-                      v-if="orderStatus < 3 || scope.row.edit"
+                      v-if="!orderStatus || scope.row.edit"
                       :prop="'productList.' + scope.$index + '.productPurchaseMethod'"
                       :rules="valueRule"
                     >
@@ -433,19 +510,20 @@
         <orderMessage :id="orderId" :inquirySn="form.inquirySn" ref="orderMessageRef"></orderMessage>
       </el-aside>
     </el-container>
+    <payInfoDialog ref="payInfoDialogRef" @submit="submitForm" :ordersupplierList="ordersupplierList" />
   </div>
 </template>
 
 <script setup name="Detail">
-import { addOrder, getOrder, updateOrder } from '@/api/order'
-import { updateProduct, delProduct } from '@/api/product'
+import { getOrder, updateOrder, editOrderStatus, payment } from '@/api/order'
+import { delProduct } from '@/api/product'
 import { delFile } from '@/api/system/info'
 import { searchSupplier } from '@/api/brand'
-import brandSelect from '@/views/componments/brandSelect'
 import { nextTick, onBeforeMount, reactive } from 'vue'
 import orderMessage from './orderMessage'
 import { deepClone } from '@/utils/index'
 import SimpleSelect from '@/components/SimpleSelect'
+import payInfoDialog from './payInfoDialog.vue'
 
 import { getToken } from '@/utils/auth'
 import useUserStore from '@/store/modules/user'
@@ -454,17 +532,19 @@ const user = useUserStore()
 console.log(user.roles)
 const { proxy } = getCurrentInstance()
 const { order_status } = proxy.useDict('order_status')
+const { payment_status } = proxy.useDict('payment_status')
 const orderStatus = ref(0)
 const orderId = proxy.$route.query.id
 const base = import.meta.env.VITE_APP_BASE_API
 const headers = ref({ Authorization: 'Bearer ' + getToken() })
 const timingTimeStr = ref('')
 const pageEdit = ref(false)
-const quoted = ref(false)
 const btnAddDiabled = ref(false)
 const updatedProductId = ref(null)
 const originData = ref({})
 const multipleSelection = ref([])
+const ordersupplierList = ref([])
+const paymentForm = ref({})
 
 // 产品默认对象
 const defaulfItem = {
@@ -502,23 +582,24 @@ onBeforeMount(() => {
 
 // 计算采购总价
 function getPurchaseTotalPrice(item) {
-  item.productPurchaseTotalPrice = getFloat(item.productPurchasePrice * item.productQuantity, 4)
+  item.orderPurchaseTotalPrice = getFloat(item.productPurchasePrice * item.productQuantity, 4)
   getTotalPrice()
 }
-// 计算询盘总价
+// 计算订单总价
 function getTotalPrice() {
   console.log('计算总价')
   let price = 0
   for (let i = 0; i < form.value.productList.length; i++) {
     const item = form.value.productList[i]
-    price += item.productPurchaseTotalPrice * 1
+    price += item.orderPurchaseTotalPrice * 1
   }
-  form.value.inquiryTotalPriceNoTax = getFloat(price, 4)
+  form.value.orderTotalPriceNoTax = getFloat(price, 4)
   // 税金
-  form.value.inquiryTax = getFloat((form.value.inquiryTotalPriceNoTax * form.value.inquiryTaxRate) / 100, 4)
+  form.value.orderTax = getFloat((form.value.orderTotalPriceNoTax * form.value.orderTaxRate) / 100, 4)
   // 总价
-  let TotalPrice = form.value.inquiryTotalPriceNoTax * 1 + form.value.inquiryOtherFee * 1
-  form.value.inquiryTotalPrice = getFloat(TotalPrice, 4)
+  let TotalPrice = form.value.orderTotalPriceNoTax * 1 + form.value.orderOtherFee * 1
+  form.value.orderTotalPrice = getFloat(TotalPrice, 4)
+  console.log('orderTotalPrice:' + form.value.orderTotalPriceNoTax)
 }
 
 // 获取当前询盘信息
@@ -537,6 +618,11 @@ function getInfo() {
             supplierName: item.supplierName,
           },
         ]
+        ordersupplierList.value.push({
+          supplierId: item.supplierId,
+          supplierName: item.supplierName,
+        })
+        console.log(ordersupplierList.value)
         return item
       })
     }
@@ -601,23 +687,19 @@ function handleEditProduct(index) {
   }
 }
 // 提交订单
-function submitForm(orderStatus) {
+function submitForm(orderStatus, payment) {
+  if (orderStatus === 7) {
+    proxy.$modal.confirm('当前操作不可恢复，是否确认取消订单？').then(() => {})
+  }
   proxy.$refs['orderRef'].validate((valid) => {
     if (valid) {
-      if (orderStatus === 4) {
-        console.log(multipleSelection.value)
-        if (!multipleSelection.value.length) {
-          return proxy.$modal.msgError('请选择下单产品')
-        }
-        if (!form.value.piSn) {
-          return proxy.$modal.msgError('请输入PI号')
-        }
-        form.value.selectedProductList = multipleSelection.value
+      if (orderStatus === 2) {
+        form.value.paymentList = payment
       }
-      form.value.orderStatus = orderStatus
-      editOrderStatus(form.value).then((response) => {
+
+      editOrderStatus({ ...form.value, orderStatus }).then((response) => {
         proxy.$modal.msgSuccess('保存成功')
-        proxy.$tab.closeOpenPage({ path: '/inquiry' })
+        proxy.$tab.closeOpenPage({ path: '/order' })
       })
     }
   })
@@ -673,7 +755,7 @@ function handleSelectionChange(val) {
   let count = 0
   for (let i = 0; i < val.length; i++) {
     const item = val[i]
-    price += item.productPurchaseTotalPrice * 1
+    price += item.orderPurchaseTotalPrice * 1
     count += item.productQuantity * 1
   }
   form.value.inquirySelectedTotalPriceNoTax = getFloat(price, 4)
@@ -692,6 +774,38 @@ function handleSelectionChange(val) {
   form.value.inquirySelectedTotalPrice = getFloat(TotalPrice, 4)
   form.value.inquirySelectedCount = val.length
   form.value.inquirySelectedTotalProducts = count
+}
+// 申请付款
+function openPayInfo() {
+  proxy.$refs.payInfoDialogRef.show(form.value.piSn)
+}
+//   去付款
+function handlePay(row) {
+  console.log('pay')
+  console.log(row)
+  if (row.paymentContractFileList) {
+    payment({
+      paymentStatus: 1,
+      paymentId: row.paymentId,
+    }).then(() => {
+      proxy.$modal.msgSuccess('付款成功')
+      getInfo()
+    })
+  } else {
+    proxy.$modal.msgError('请上传付款凭证')
+  }
+}
+//   取消付款
+function handleCanclePay(row) {
+  proxy.$modal.confirm('当前操作不可恢复，是否确认拒绝付款？').then(function () {
+    payment({
+      paymentStatus: 2,
+      paymentId: row.paymentId,
+    }).then(() => {
+      proxy.$modal.msgSuccess('保存成功')
+      getInfo()
+    })
+  })
 }
 </script>
 
@@ -762,12 +876,12 @@ function handleSelectionChange(val) {
   .total-price-left,
   .total-price-right {
     .total-price-content {
-      border: 1px solid var(--el-color-warning);
-      height: 165px;
-      background: rgba(0, 0, 0, 0.03);
-      padding: 5px 20px 10px;
+      // border: 1px solid var(--el-color-warning);
+      min-height: 170px;
+      // background: rgba(0, 0, 0, 0.03);
+      // padding: 5px 20px 10px;
       margin-top: 20px;
-      border-radius: 15px;
+      // border-radius: 15px;
       h3 {
         line-height: 1;
         margin: 15px 0;

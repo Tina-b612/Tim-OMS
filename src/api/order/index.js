@@ -52,9 +52,18 @@ export function getOrderCount(query) {
 }
 
 // 修改询盘
-export function editInquiryStatus(data) {
+export function editOrderStatus(data) {
   return request({
-    url: '/order/editInquiryStatus',
+    url: '/order/editOrderStatus',
+    method: 'put',
+    data: data,
+  })
+}
+
+// 确认付款
+export function payment(data) {
+  return request({
+    url: '/payment',
     method: 'put',
     data: data,
   })

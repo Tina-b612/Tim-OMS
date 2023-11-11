@@ -89,9 +89,9 @@
           <el-tab-pane
             v-for="item in stateNumber"
             :label="
-              item.orderStatusCount ? inquiry_status_map[item.orderStatus].label + `（${item.orderStatusCount}）` : ''
+              item.orderStatusCount ? order_status_map[item.orderStatus].label + `（${item.orderStatusCount}）` : ''
             "
-            :name="inquiry_status_map[item.orderStatus].value"
+            :name="order_status_map[item.orderStatus].value"
           ></el-tab-pane>
         </el-tabs>
         <!-- 列表 -->
@@ -110,7 +110,7 @@
           <!-- <el-table-column label="含税总价" align="center" prop="taxedTotalAmount" /> -->
           <el-table-column label="订单状态" align="center" prop="orderStatus">
             <template #default="scope">
-              <dict-tag :options="inquiry_status" :value="scope.row.orderStatus" />
+              <dict-tag :options="order_status" :value="scope.row.orderStatus" />
             </template>
           </el-table-column>
           <el-table-column label="订单创建时间" align="center" prop="orderCreateTime" width="180">
@@ -177,7 +177,7 @@ const handleTabClick = (tab) => {
 }
 
 const { proxy } = getCurrentInstance()
-const { inquiry_status } = proxy.useDict('inquiry_status')
+const { order_status } = proxy.useDict('order_status')
 
 const route = useRoute()
 watch(route, () => {
@@ -254,10 +254,10 @@ const { queryParams, form, rules } = toRefs(data)
 
 // 查询订单状态数量
 const stateNumber = ref([])
-const inquiry_status_map = ref({})
+const order_status_map = ref({})
 function getStateNumber() {
   getOrderCount().then((res) => {
-    inquiry_status_map.value = inquiry_status.value.reduce((target, key, index) => {
+    order_status_map.value = order_status.value.reduce((target, key, index) => {
       target[key.value] = key
       return target
     }, {})

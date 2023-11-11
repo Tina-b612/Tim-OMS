@@ -7,7 +7,7 @@
           <!-- 默认状态按钮 -->
           <div class="right">
             <el-button type="success" @click="submitForm(0)">保存为草稿</el-button>
-            <el-button type="success" @click="submitForm(4)">申请采购</el-button>
+            <el-button type="success" @click="submitForm(1)">申请采购</el-button>
           </div>
         </el-row>
         <el-form ref="orderRef" :model="form" :rules="rules" label-width="80px" :disabled="false" class="orderForm">
@@ -26,15 +26,15 @@
           <!-- 合计 -->
           <el-row :gutter="20" justify="center">
             <el-col :span="12" class="total-price-left">
-              <div class="total-price-content">
+              <el-card class="total-price-content">
                 <h3 class="ml20">本单合计</h3>
-                <div class="flex-center-left ml20 mt20 totalPrice">
-                  <div>未税总价：¥ {{ form.inquiryTotalPriceNoTax || 0 }}</div>
-                  <div class="ml20">税金：¥ {{ form.inquiryTax || 0 }}</div>
-                  <div class="ml20">总价：¥ {{ form.inquiryTotalPrice || 0 }}</div>
+                <div class="flex-center-left ml20 totalPrice">
+                  <div>未税总价：¥ {{ form.orderTotalPriceNoTax || 0 }}</div>
+                  <div class="ml20">税金：¥ {{ form.orderTax || 0 }}</div>
+                  <div class="ml20">总价：¥ {{ form.orderTotalPrice || 0 }}</div>
                 </div>
                 <div class="flex-center-left mt10">
-                  <el-form-item label="税率" prop="inquiryTaxRate">
+                  <el-form-item label="税率" prop="orderTaxRate">
                     <template #label>
                       税率
                       <el-popover
@@ -53,11 +53,11 @@
                       :
                     </template>
 
-                    <el-input v-model="form.inquiryTaxRate" style="width: 130px" @input="getTotalPrice">
+                    <el-input v-model="form.orderTaxRate" style="width: 130px" @input="getTotalPrice">
                       <template #append>%</template>
                     </el-input>
                   </el-form-item>
-                  <el-form-item label="杂费" prop="inquiryOtherFee">
+                  <el-form-item label="杂费" prop="orderOtherFee">
                     <template #label>
                       杂费
                       <el-popover
@@ -75,12 +75,12 @@
                       </el-popover>
                       :
                     </template>
-                    <el-input v-model="form.inquiryOtherFee" style="width: 150px" @input="getTotalPrice">
+                    <el-input v-model="form.orderOtherFee" style="width: 150px" @input="getTotalPrice">
                       <template #append>元</template>
                     </el-input>
                   </el-form-item>
                 </div>
-              </div>
+              </el-card>
             </el-col>
           </el-row>
           <div class="mt20">
@@ -122,6 +122,7 @@
                         searchKey="supplierName"
                         searchValue="supplierId"
                         :supplierEnable="1"
+                        :brandId="form.rtBrand ? form.rtBrand.brandId : null"
                       />
                       <span v-else>{{ scope.row.supplierName }}</span>
                     </el-form-item>
@@ -288,12 +289,12 @@ function getTotalPrice() {
     const item = form.value.productList[i]
     price += item.productPurchaseTotalPrice * 1
   }
-  form.value.inquiryTotalPriceNoTax = getFloat(price, 4)
+  form.value.orderTotalPriceNoTax = getFloat(price, 4)
   // 税金
-  form.value.inquiryTax = getFloat((form.value.inquiryTotalPriceNoTax * form.value.inquiryTaxRate) / 100, 4)
+  form.value.orderTax = getFloat((form.value.orderTotalPriceNoTax * form.value.orderTaxRate) / 100, 4)
   // 总价
-  let TotalPrice = form.value.inquiryTotalPriceNoTax * 1 + form.value.inquiryOtherFee * 1
-  form.value.inquiryTotalPrice = getFloat(TotalPrice, 4)
+  let TotalPrice = form.value.orderTotalPriceNoTax * 1 + form.value.orderOtherFee * 1
+  form.value.orderTotalPrice = getFloat(TotalPrice, 4)
 }
 
 function handleAddProduct() {
@@ -317,7 +318,7 @@ function handleDeleteOrderItem(index) {
 function submitForm(orderStatus) {
   proxy.$refs['orderRef'].validate((valid) => {
     if (valid) {
-      form.value.orderStatus = orderStatus
+      form.value.orderStatus = orderStatus + ''
       addOrder(form.value)
         .then((response) => {
           if (orderStatus === 1) {
@@ -438,12 +439,12 @@ function handleFileRemove(uploadFile) {
   .total-price-left,
   .total-price-right {
     .total-price-content {
-      border: 1px solid var(--el-color-warning);
-      height: 165px;
-      background: rgba(0, 0, 0, 0.03);
-      padding: 5px 20px 10px;
+      // border: 1px solid var(--el-color-warning);
+      min-height: 170px;
+      // background: rgba(0, 0, 0, 0.03);
+      // padding: 5px 20px 10px;
       margin-top: 20px;
-      border-radius: 15px;
+      // border-radius: 15px;
       h3 {
         line-height: 1;
         margin: 15px 0;
