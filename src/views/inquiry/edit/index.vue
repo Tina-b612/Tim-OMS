@@ -25,7 +25,7 @@
             </div> -->
           </div>
           <!-- 订单操作按钮 -->
-          <el-row class="flex-center-right mt20">
+          <el-row class="flex-center-right mt20" v-show="loading">
             <!-- 编辑状态按钮 -->
             <div class="right" v-show="pageEdit">
               <el-button type="success" @click="handleSave">保存</el-button>
@@ -328,7 +328,7 @@
                       </div>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase']">
+                  <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase', 'manager']">
                     <template #default="scope">
                       <el-form-item :prop="'productList.' + scope.$index + '.supplierId'" :rules="valueRule">
                         <simple-select-local
@@ -574,7 +574,7 @@ import { getToken } from '@/utils/auth'
 import useUserStore from '@/store/modules/user'
 import { getFloat } from '@/utils/index'
 const user = useUserStore()
-console.log(user.roles)
+const loading = ref(false)
 const { proxy } = getCurrentInstance()
 const { inquiry_status } = proxy.useDict('inquiry_status')
 const { order_status } = proxy.useDict('order_status')
@@ -669,6 +669,7 @@ function getInfo() {
     nextTick(() => {
       originData.value = data
       form.value = deepClone(originData.value)
+      loading.value = true
       setInterval(() => {
         timingTimeStr.value = timingTime(form.value.inquiryStatusUpdateTime)
       })
@@ -755,6 +756,7 @@ function submitForm(inquiryStatus) {
     }
   })
 }
+
 // 保存编辑
 function handleSave() {
   proxy.$refs['orderRef'].validate((valid) => {

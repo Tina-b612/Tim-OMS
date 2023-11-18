@@ -85,7 +85,7 @@
       <div class="inquiry-order-list">
         <!-- 列表分类 -->
         <el-tabs v-model="activeName" type="card" class="demo-tabs" @tab-click="handleTabClick">
-          <el-tab-pane label="全部" name="0"></el-tab-pane>
+          <el-tab-pane label="全部" name=""></el-tab-pane>
           <el-tab-pane
             v-for="item in stateNumber"
             :label="
@@ -167,24 +167,16 @@ import OrderEditDialog from './orderEditDialog'
 import omsMessage from '@/views/componments/omsMessage'
 import SimpleSelect from '@/components/SimpleSelect'
 
-import defaultLogo from '@/assets/images/default.png'
-
-const activeName = ref('0')
+const activeName = ref('')
 
 const handleTabClick = (tab) => {
-  queryParams.value.orderStatus = tab.paneName
-  getList()
+  proxy.$router.push({ path: 'order', query: { status: tab.paneName } })
 }
 
 const { proxy } = getCurrentInstance()
 const { order_status } = proxy.useDict('order_status')
 
 const route = useRoute()
-watch(route, () => {
-  if (proxy.$route.path === '/purchase/list') {
-    getList()
-  }
-})
 
 const loading = ref(true)
 // 显示搜索条件
@@ -261,6 +253,11 @@ function getStateNumber() {
       target[key.value] = key
       return target
     }, {})
+
+    res.data.sort((a, b) => {
+      return a.orderStatus - b.orderStatus
+    })
+
     stateNumber.value = res.data
   })
 }
@@ -311,8 +308,18 @@ function handleUpdate(row) {
     proxy.$router.push({ path: 'order/edit', query: { id: row.orderId } })
   }
 }
+watch(
+  () => route.query.status,
+  (newValue, oldValue) => {
+    console.log('watch', newValue)
+    queryParams.value.orderStatus = newValue || ''
+    activeName.value = newValue || ''
+    getList()
+  },
+  { immediate: true }
+)
 
-getList()
+// getList()
 </script>
 
 <style lang="scss">

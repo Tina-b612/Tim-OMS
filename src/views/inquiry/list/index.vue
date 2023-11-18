@@ -150,20 +150,11 @@ import defaultLogo from '@/assets/images/default.png'
 
 const activeName = ref('')
 
-const handleTabClick = (tab) => {
-  queryParams.value.inquiryStatus = tab.paneName
-  getList()
-}
-
 const { proxy } = getCurrentInstance()
 const { inquiry_status } = proxy.useDict('inquiry_status')
 
 const route = useRoute()
-watch(route, () => {
-  if (proxy.$route.path === '/purchase/list') {
-    getList()
-  }
-})
+console.log(route.query.orderstatus)
 
 const loading = ref(true)
 // 显示搜索条件
@@ -240,6 +231,9 @@ function getStateNumber() {
       target[key.value] = key
       return target
     }, {})
+    res.data.sort((a, b) => {
+      return a.inquiryState - b.inquiryState
+    })
     stateNumber.value = res.data
   })
 }
@@ -287,7 +281,31 @@ function handleUpdate(row) {
   proxy.$router.push({ path: 'inquiry/edit', query: { id: row.inquiryId } })
 }
 
-getList()
+// onBeforeMount(() => {
+//   let status = route.query.status
+//   queryParams.value.inquiryStatus = status
+//   getList()
+// })
+
+const handleTabClick = (tab) => {
+  // queryParams.value.inquiryStatus = tab.paneName
+  // getList()
+
+  proxy.$router.push({ path: 'inquiry', query: { status: tab.paneName } })
+}
+
+watch(
+  () => route.query.status,
+  (newValue, oldValue) => {
+    console.log('watch', newValue)
+    queryParams.value.inquiryStatus = newValue || ''
+    activeName.value = newValue || ''
+    getList()
+  },
+  { immediate: true }
+)
+
+// getList()
 </script>
 
 <style lang="scss">

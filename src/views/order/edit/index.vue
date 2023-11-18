@@ -26,7 +26,7 @@
           </div> -->
         </div>
         <!-- 订单操作按钮 -->
-        <el-row class="flex-center-right mt20">
+        <el-row class="flex-center-right mt20" v-show="loading">
           <!-- 编辑状态按钮 -->
           <div class="right" v-show="pageEdit">
             <el-button type="success" @click="handleSave">保存</el-button>
@@ -39,7 +39,7 @@
             <!-- <el-button type="success" @click="submitForm(0)" v-if="!orderStatus">申请采购</el-button> -->
             <el-button type="success" @click="openPayInfo" v-if="[0, 1].includes(orderStatus)">申请付款</el-button>
             <el-button type="success" @click="submitForm(5)" v-if="[4].includes(orderStatus)">已签收</el-button>
-            <el-button type="success" @click="submitForm(6)" v-if="[4].includes(orderStatus)">异常签收</el-button>
+            <el-button type="success" @click="handleSignFor(6)" v-if="[4].includes(orderStatus)">异常签收</el-button>
             <el-button type="danger" @click="submitForm(7)" v-if="![7].includes(orderStatus)">取消</el-button>
           </div>
         </el-row>
@@ -522,6 +522,7 @@
       </el-aside>
     </el-container>
     <payInfoDialog ref="payInfoDialogRef" @submit="submitForm" :ordersupplierList="ordersupplierList" />
+    <signForModel ref="signForModelRef" @submit="submitForm" />
   </div>
 </template>
 
@@ -529,19 +530,16 @@
 import { getOrder, updateOrder, editOrderStatus, payment } from '@/api/order'
 import { delProduct } from '@/api/product'
 import { delFile } from '@/api/system/info'
-import { searchSupplier } from '@/api/brand'
-import { nextTick, onBeforeMount, reactive } from 'vue'
+import { nextTick, onBeforeMount, reactive, ref } from 'vue'
 import orderMessage from './orderMessage'
 import { deepClone } from '@/utils/index'
-import SimpleSelect from '@/components/SimpleSelect'
 import SimpleSelectLocal from '@/components/SimpleSelectLocal'
+import signForModel from './signForModel.vue'
 import payInfoDialog from './payInfoDialog.vue'
-
 import { getToken } from '@/utils/auth'
 import useUserStore from '@/store/modules/user'
 import { getFloat } from '@/utils/index'
 const user = useUserStore()
-console.log(user.roles)
 const { proxy } = getCurrentInstance()
 const { order_status } = proxy.useDict('order_status')
 const { payment_status } = proxy.useDict('payment_status')
@@ -556,6 +554,7 @@ const updatedProductId = ref(null)
 const originData = ref({})
 const multipleSelection = ref([])
 const ordersupplierList = ref([])
+const loading = ref(false)
 
 // 产品默认对象
 const defaulfItem = {
@@ -640,6 +639,7 @@ function getInfo() {
 
     nextTick(() => {
       originData.value = data
+      loading.value = true
       form.value = deepClone(originData.value)
       setInterval(() => {
         timingTimeStr.value = timingTime(form.value.orderStatusUpdateTime)
@@ -708,6 +708,9 @@ function submitForm(orderStatus, payment) {
     })
     return
   }
+  if (orderStatus === 6) {
+    form.value.orderReceiptedException = payment.orderReceiptedException
+  }
   proxy.$refs['orderRef'].validate((valid) => {
     if (valid) {
       if (orderStatus === 2) {
@@ -720,6 +723,11 @@ function submitForm(orderStatus, payment) {
       })
     }
   })
+}
+// 异常签收弹窗
+function handleSignFor() {
+  // console.log('异常签收')
+  proxy.$refs.signForModelRef.show()
 }
 // 保存编辑
 function handleSave() {

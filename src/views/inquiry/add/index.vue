@@ -103,7 +103,6 @@ import { deepClone } from '@/utils/index'
 import { getToken } from '@/utils/auth'
 const { proxy } = getCurrentInstance()
 const orderState = ref(0)
-const userHasRole = ref(false)
 const base = import.meta.env.VITE_APP_BASE_API
 const headers = ref({ Authorization: 'Bearer ' + getToken() })
 
@@ -131,10 +130,6 @@ const data = reactive({
   },
 })
 const { form, rules, valueRule } = toRefs(data)
-
-onBeforeMount(() => {
-  userHasRole.value = proxy.$auth.hasRoleOr(['admin', 'purchase'])
-})
 
 function handleAddProduct() {
   form.value.productList.push(deepClone(defaulfItem))
