@@ -9,7 +9,7 @@
             <el-button v-show="[0, 6].includes(orderState)" type="primary" plain @click="cancel()">取消</el-button>
             <el-button
               v-show="[1, 2].includes(orderState)"
-              v-hasRole="['admin', 'sales', 'purchase']"
+              v-hasRole="['admin', 'sales', 'salesAdmin', 'purchase', 'purchaseAdmin']"
               type="primary"
               @click="submitForm(orderState)"
             >
@@ -133,8 +133,8 @@ const canChange = ref(false)
 const orderState = ref(0)
 const orderId = proxy.$route.query.id
 const userHasRole = ref(false)
-const isSales = proxy.$auth.hasRole('sales')
-const isPurchase = proxy.$auth.hasRole('purchase')
+const isSales = proxy.$auth.hasRoleOr('sales', 'salesAdmin')
+const isPurchase = proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')
 const timingTimeStr = ref('')
 const base = import.meta.env.VITE_APP_BASE_API
 const headers = ref({ Authorization: 'Bearer ' + getToken() })
@@ -167,7 +167,7 @@ const totalPrice = ref(0)
 const { form, rules, valueRule } = toRefs(data)
 
 onBeforeMount(() => {
-  userHasRole.value = proxy.$auth.hasRoleOr(['admin', 'purchase'])
+  userHasRole.value = proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])
   if (orderId) {
     const route = Object.assign({}, proxy.$route, { title: '编辑采购单' })
     proxy.$tab.updatePage(route)
@@ -175,7 +175,7 @@ onBeforeMount(() => {
       nextTick(() => {
         let data = res.data
         orderState.value = data.orderState
-        canChange.value = proxy.$auth.hasRoleOr(['admin', 'common']) && [1, 2, 3, 4, 6, 7].includes(data.orderState)
+        canChange.value = proxy.$auth.hasRoleOr(['common']) && [1, 2, 3, 4, 6, 7].includes(data.orderState)
         // data.brand = {
         //   brandId: data.brandId,
         //   brandName: data.brandName,

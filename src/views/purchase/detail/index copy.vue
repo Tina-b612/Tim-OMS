@@ -63,7 +63,11 @@
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column prop="supplierName" label="供应商" v-hasRole="['admin', 'purchase']"></el-table-column>
+              <el-table-column
+                prop="supplierName"
+                label="供应商"
+                v-hasRole="['admin', 'purchase', 'purchaseAdmin']"
+              ></el-table-column>
               <el-table-column
                 prop="purchasePrice"
                 label="采购价"
@@ -84,7 +88,11 @@
                 label="修改货期"
                 v-if="orderState >= 2 || isPurchase || isAdmin"
               ></el-table-column>
-              <el-table-column prop="purchaseAttachmentList" label="采购附件" v-hasRole="['admin', 'purchase']">
+              <el-table-column
+                prop="purchaseAttachmentList"
+                label="采购附件"
+                v-hasRole="['admin', 'purchase', 'purchaseAdmin']"
+              >
                 <template #default="scope">
                   <div v-for="item in scope.row.purchaseAttachmentList">
                     <el-link type="primary" :href="base + (item.response.filePath || item.response.pathName)">
@@ -137,7 +145,7 @@
           <el-button v-show="[0, 6].includes(orderState)" type="success" @click="submitForm(6)">保存草稿</el-button>
           <el-button
             v-show="[1, 2].includes(orderState)"
-            v-hasRole="['admin', 'sales', 'purchase']"
+            v-hasRole="['admin', 'sales', 'salesAdmin', 'purchase', 'purchaseAdmin']"
             type="primary"
             @click="submitForm(orderState)"
           >
@@ -145,7 +153,7 @@
           </el-button>
           <el-button
             v-show="[2].includes(orderState)"
-            v-hasRole="['admin', 'purchase']"
+            v-hasRole="['admin', 'purchase', 'purchaseAdmin']"
             type="primary"
             @click="submitForm(2)"
           >
@@ -153,7 +161,7 @@
           </el-button>
           <el-button
             v-show="[2].includes(orderState)"
-            v-hasRole="['admin', 'sales']"
+            v-hasRole="['admin', 'sales', 'salesAdmin']"
             type="success"
             @click="submitForm(3)"
           >
@@ -161,7 +169,7 @@
           </el-button>
           <el-button
             v-show="[1].includes(orderState)"
-            v-hasRole="['admin', 'purchase']"
+            v-hasRole="['admin', 'purchase', 'purchaseAdmin']"
             type="success"
             @click="submitForm(2)"
           >
@@ -170,7 +178,12 @@
           <el-button v-show="[3].includes(orderState)" v-hasRole="['admin']" type="primary" @click="submitForm(4)">
             已付款
           </el-button>
-          <el-button v-show="[4].includes(orderState)" v-hasRole="['admin', 'sales']" type="primary" @click="confirm">
+          <el-button
+            v-show="[4].includes(orderState)"
+            v-hasRole="['admin', 'sales', 'salesAdmin']"
+            type="primary"
+            @click="confirm"
+          >
             已签收
           </el-button>
           <el-button v-show="[3].includes(orderState)" v-hasRole="['admin']" type="danger" @click="submitForm(2)">
@@ -179,7 +192,7 @@
 
           <el-button
             v-show="[1, 2, 6].includes(orderState)"
-            v-hasRole="['admin', 'sales']"
+            v-hasRole="['admin', 'sales', 'salesAdmin']"
             @click="cancel"
             type="danger"
           >
@@ -190,7 +203,7 @@
           <!-- <el-button
             v-if="[7].includes(orderState)"
             type="primary"
-            v-hasRole="['admin', 'sales']"
+            v-hasRole="['admin', 'sales', 'salesAdmin']"
             @click="submitForm(6)"
           >
             退回草稿
@@ -221,9 +234,9 @@ const canChange = ref(false)
 const orderState = ref(0)
 const orderId = proxy.$route.query.id
 const userHasRole = ref(false)
-const isSales = proxy.$auth.hasRole('sales')
-const isPurchase = proxy.$auth.hasRole('purchase')
-const isAdmin = proxy.$auth.hasRole('admin')
+const isSales = proxy.$auth.hasRoleOr('sales', 'salesAdmin')
+const isPurchase = proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')
+const isAdmin = proxy.$auth.hasRoleOr('admin')
 const timingTimeStr = ref('')
 const base = import.meta.env.VITE_APP_BASE_API
 const originForm = {
@@ -250,7 +263,7 @@ const totalPrice = ref(0)
 const { form, rules, valueRule } = toRefs(data)
 
 onBeforeMount(() => {
-  userHasRole.value = proxy.$auth.hasRoleOr(['admin', 'purchase'])
+  userHasRole.value = proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])
   if (orderId) {
     const route = Object.assign({}, proxy.$route, { title: '编辑采购单' })
     proxy.$tab.updatePage(route)
@@ -258,7 +271,7 @@ onBeforeMount(() => {
       nextTick(() => {
         let data = res.data
         orderState.value = data.orderState
-        canChange.value = proxy.$auth.hasRoleOr(['admin', 'common']) && [1, 2, 3, 4, 6, 7].includes(data.orderState)
+        canChange.value = proxy.$auth.hasRoleOr(['common']) && [1, 2, 3, 4, 6, 7].includes(data.orderState)
         // data.brand = {
         //   brandId: data.brandId,
         //   brandName: data.brandName,

@@ -77,7 +77,9 @@
       <!-- 操作按钮 -->
       <el-row :gutter="10" class="mb8 mt10">
         <el-col :span="1.5">
-          <el-button type="success" icon="Plus" v-hasRole="['purchase']" @click="handleAdd">创建订单</el-button>
+          <el-button type="success" icon="Plus" v-hasRole="['purchase', 'purchaseAdmin']" @click="handleAdd">
+            创建订单
+          </el-button>
         </el-col>
         <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
       </el-row>

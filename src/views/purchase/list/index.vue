@@ -113,7 +113,9 @@
 
       <el-row :gutter="10" class="mb8 mt10">
         <el-col :span="1.5">
-          <el-button type="success" icon="Plus" v-hasRole="['sales', 'admin']" @click="handleAdd">创建询价单</el-button>
+          <el-button type="success" icon="Plus" v-hasRole="['sales', 'salesAdmin']" @click="handleAdd">
+            创建询价单
+          </el-button>
         </el-col>
         <el-col :span="1.5">
           <!-- <el-button type="warning" plain icon="Download" @click="handleExport"

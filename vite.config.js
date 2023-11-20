@@ -34,7 +34,7 @@ export default defineConfig(({ mode, command }) => {
           // target: 'http://localhost:8080',
           // target: 'http://192.168.0.123:8080',
           // target: 'http://192.168.0.119:8080',
-          target: 'http://10.0.0.4:8080',
+          target: 'http://127.0.0.1:80',
           // target:'https://m323745n69.goho.co',
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/dev-api/, ''),

@@ -35,7 +35,7 @@
             <div class="right" v-show="!pageEdit">
               <el-button
                 type="primary"
-                v-hasRole="['purchase']"
+                v-hasRole="['purchase', 'purchaseAdmin']"
                 v-show="[1, 2].includes(inquiryStatus)"
                 @click="submitForm(inquiryStatus)"
               >
@@ -43,7 +43,7 @@
               </el-button>
               <el-button
                 type="primary"
-                v-hasRole="['purchase']"
+                v-hasRole="['purchase', 'purchaseAdmin']"
                 v-show="[1, 2].includes(inquiryStatus)"
                 @click="submitForm(3)"
               >
@@ -51,7 +51,10 @@
               </el-button>
               <el-button
                 type="success"
-                v-show="(inquiryStatus === 3 && proxy.$auth.hasRole('purchase')) || [1, 2].includes(inquiryStatus)"
+                v-show="
+                  (inquiryStatus === 3 && proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')) ||
+                  [1, 2].includes(inquiryStatus)
+                "
                 @click="pageEdit = true"
               >
                 编辑
@@ -61,7 +64,7 @@
               <el-button
                 type="success"
                 @click="submitForm(4)"
-                v-if="[3].includes(inquiryStatus) && proxy.$auth.hasRole('sales')"
+                v-if="[3].includes(inquiryStatus) && proxy.$auth.hasRoleOr('sales', 'salesAdmin')"
               >
                 申请采购
               </el-button>
@@ -125,13 +128,13 @@
                 class="mt20"
                 label="PI号"
                 prop="piSn"
-                v-if="inquiryStatus === 3 && proxy.$auth.hasRole('sales')"
+                v-if="inquiryStatus === 3 && proxy.$auth.hasRoleOr('sales', 'salesAdmin')"
               >
                 <el-input v-model="form.piSn" placeholder="请输入PI号" />
               </el-form-item>
             </div>
             <!-- 合计 -->
-            <el-row :gutter="20" v-if="inquiryStatus >= 3 || proxy.$auth.hasRole('purchase')">
+            <el-row :gutter="20" v-if="inquiryStatus >= 3 || proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')">
               <el-col :span="12" class="total-price-left">
                 <el-card class="total-price-content" header="本单合计">
                   <!-- <h3 class="ml20">本单合计</h3> -->
@@ -161,7 +164,10 @@
                       </template>
 
                       <el-input
-                        v-if="proxy.$auth.hasRole('purchase') && (pageEdit || [1, 2].includes(inquiryStatus))"
+                        v-if="
+                          proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin') &&
+                          (pageEdit || [1, 2].includes(inquiryStatus))
+                        "
                         v-model="form.inquiryTaxRate"
                         style="width: 130px"
                         @input="getTotalPrice"
@@ -190,7 +196,10 @@
                       </template>
                       <span class="mr10">¥</span>
                       <el-input-number
-                        v-if="proxy.$auth.hasRole('purchase') && (pageEdit || [1, 2].includes(inquiryStatus))"
+                        v-if="
+                          proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin') &&
+                          (pageEdit || [1, 2].includes(inquiryStatus))
+                        "
                         v-model="form.inquiryOtherFee"
                         style="width: 150px"
                         :controls="false"
@@ -207,7 +216,7 @@
               <el-col
                 :span="12"
                 class="total-price-right"
-                v-if="proxy.$auth.hasRole('sales') || [3].includes(inquiryId)"
+                v-if="proxy.$auth.hasRoleOr('sales', 'salesAdmin') || [3].includes(inquiryId)"
               >
                 <el-card class="total-price-content" header="勾选产品合计">
                   <!-- <h3 class="ml20">勾选产品合计</h3> -->
@@ -230,7 +239,7 @@
 
             <!-- 
           <p>{{ ![0].includes(inquiryStatus) }}</p>
-          <p>{{ proxy.$auth.hasRole('purchase') && pageEdit }}</p> -->
+          <p>{{ proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin') && pageEdit }}</p> -->
             <div class="mt20">
               <el-form-item label="订单状态" v-if="form.orderList">
                 <el-table
@@ -280,7 +289,7 @@
                     prop="productDescription"
                     label="产品描述"
                     :show-overflow-tooltip="true"
-                    :width="proxy.$auth.hasRole('purchase') && pageEdit ? 160 : 'auto'"
+                    :width="proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin') && pageEdit ? 160 : 'auto'"
                   >
                     <template #default="scope">
                       <el-input
@@ -294,7 +303,7 @@
                   <el-table-column
                     prop="productQuantity"
                     label="数量"
-                    :width="proxy.$auth.hasRole('purchase') && pageEdit ? 160 : 'auto'"
+                    :width="proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin') && pageEdit ? 160 : 'auto'"
                   >
                     <template #default="scope">
                       <el-input-number
@@ -328,7 +337,12 @@
                       </div>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase', 'manager']">
+                  <el-table-column
+                    prop="supplierId"
+                    label="供应商"
+                    width="150"
+                    v-hasRole="['purchase', 'purchaseAdmin', 'manager']"
+                  >
                     <template #default="scope">
                       <el-form-item :prop="'productList.' + scope.$index + '.supplierId'" :rules="valueRule">
                         <simple-select-local
@@ -345,7 +359,7 @@
                   <el-table-column
                     prop="productPurchaseMethod"
                     label="采购方式"
-                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')"
                     width="100"
                   >
                     <template #default="scope">
@@ -362,7 +376,7 @@
                   <el-table-column
                     prop="productPurchasePrice"
                     label="未税单价"
-                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')"
                     width="100"
                   >
                     <template #default="scope">
@@ -381,7 +395,7 @@
                   <el-table-column
                     prop="productReferencePrice"
                     label="建议售价"
-                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')"
                     width="100"
                   >
                     <template #default="scope">
@@ -399,7 +413,7 @@
                   <el-table-column
                     prop="productPurchaseTotalPrice"
                     label="采购总价"
-                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')"
                     width="100"
                   >
                     <!-- <template #default="scope">
@@ -409,7 +423,7 @@
                   <el-table-column
                     prop="productDeliveryTime"
                     label="预计货期"
-                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')"
                     width="100"
                   >
                     <template #default="scope">
@@ -425,7 +439,7 @@
                   <el-table-column
                     prop="purchaseFileList"
                     label="采购附件"
-                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                    v-if="inquiryStatus >= 3 || proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')"
                     width="150"
                   >
                     <template #default="scope">
@@ -460,13 +474,16 @@
                     align="center"
                     width="150"
                     fixed="right"
-                    v-if="(inquiryStatus === 3 && proxy.$auth.hasRole('purchase')) || [0, 1, 2].includes(inquiryStatus)"
+                    v-if="
+                      (inquiryStatus === 3 && proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')) ||
+                      [0, 1, 2].includes(inquiryStatus)
+                    "
                   >
                     <template #default="scope">
                       <!-- <el-tooltip
                         content="历史成交价"
                         placement="top"
-                        v-if="scope.row.productId && ![0].includes(inquiryStatus) && proxy.$auth.hasRole('purchase')"
+                        v-if="scope.row.productId && ![0].includes(inquiryStatus) && proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')"
                       >
                         <el-button
                           link
@@ -482,7 +499,11 @@
                         title="历史成交价"
                         width="800"
                         trigger="click"
-                        v-if="scope.row.productId && ![0].includes(inquiryStatus) && proxy.$auth.hasRole('purchase')"
+                        v-if="
+                          scope.row.productId &&
+                          ![0].includes(inquiryStatus) &&
+                          proxy.$auth.hasRoleOr('purchase', 'purchaseAdmin')
+                        "
                       >
                         <template #reference>
                           <el-button
