@@ -26,7 +26,7 @@ export default defineConfig(({ mode, command }) => {
     // vite 相关配置
     server: {
       port: 80,
-      host: true,
+      host: '0.0.0.0',
       open: true,
       proxy: {
         // https://cn.vitejs.dev/config/#server-proxy
@@ -34,8 +34,14 @@ export default defineConfig(({ mode, command }) => {
           // target: 'http://localhost:8080',
           // target: 'http://192.168.0.123:8080',
           // target: 'http://192.168.0.119:8080',
-          target: 'http://127.0.0.1:80',
-          // target:'https://m323745n69.goho.co',
+          target: 'http://127.0.0.1:80', // 打包发布
+          // target: 'http://111.229.113.50:80', // 远程测试
+          // target: 'https://m323745n69.goho.co',
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/dev-api/, ''),
+        },
+        '/prod-api': {
+          target: 'http://111.229.113.50:80', // 远程测试
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/dev-api/, ''),
         },
