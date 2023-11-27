@@ -33,8 +33,8 @@ export default defineConfig(({ mode, command }) => {
         '/dev-api': {
           // target: 'http://localhost:8080',
           // target: 'http://192.168.0.123:8080',
-          // target: 'http://192.168.0.119:8080',
-          target: 'http://127.0.0.1:80', // 打包发布
+          target: 'http://192.168.0.119:82',
+          // target: 'http://127.0.0.1:80', // 打包发布
           // target: 'http://111.229.113.50:80', // 远程测试
           // target: 'https://m323745n69.goho.co',
           changeOrigin: true,
