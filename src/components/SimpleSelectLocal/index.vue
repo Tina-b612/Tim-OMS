@@ -4,6 +4,7 @@
     filterable
     default-first-option
     clearable
+    allow-create
     :placeholder="placeholder"
     @change="selectChange"
     :loading="selectLoading"
@@ -40,16 +41,16 @@ const selection = ref(null)
 onMounted(() => {
   selection.value = props.modelValue
   searchList.value = props.defaultList
-  console.log('我拿到供应商了')
-  console.log(props.defaultList)
+  // console.log('我拿到供应商了')
+  // console.log(props.defaultList)
 })
 
 watch(
   () => props.defaultList,
   () => {
     searchList.value = props.defaultList
-    console.log('我监控供应商了')
-    console.log(props.defaultList)
+    // console.log('我监控供应商了')
+    // console.log(props.defaultList)
   }
 )
 watch(
@@ -61,7 +62,16 @@ watch(
 
 // 选择品牌
 function selectChange(value) {
-  emit('update:modelValue', value)
+  let obj = {}
+  if (typeof value === 'string') {
+    obj = {
+      brandId: '',
+      brandName: value,
+    }
+  } else {
+    obj = value
+  }
+  emit('update:modelValue', obj)
 }
 </script>
 

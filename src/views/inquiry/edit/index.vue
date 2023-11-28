@@ -137,7 +137,6 @@
             <el-row :gutter="20" v-if="inquiryStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])">
               <el-col :span="12" class="total-price-left">
                 <el-card class="total-price-content" header="本单合计">
-                  <!-- <h3 class="ml20">本单合计</h3> -->
                   <div class="flex-center-left ml20 totalPrice" v-if="![0].includes(inquiryStatus)">
                     <div>未税总价：¥ {{ form.inquiryTotalPriceNoTax || 0 }}</div>
                     <div class="ml20">税金：¥ {{ form.inquiryTax || 0 }}</div>
@@ -337,18 +336,14 @@
                       </div>
                     </template>
                   </el-table-column>
-                  <el-table-column
-                    prop="supplierId"
-                    label="供应商"
-                    width="150"
-                    v-hasRole="['purchase', 'purchaseAdmin']"
-                  >
+                  <el-table-column prop="supplier" label="供应商" width="150" v-hasRole="['purchase', 'purchaseAdmin']">
                     <template #default="scope">
-                      <el-form-item :prop="'productList.' + scope.$index + '.supplierId'" :rules="valueRule">
-                        <simple-select-local
+                      <el-form-item :prop="'productList.' + scope.$index + '.supplier'" :rules="valueRule">
+                        <simple-select
                           v-if="inquiryStatus < 3 || scope.row.edit"
-                          v-model="scope.row.supplierId"
-                          :defaultList="form.supplierList"
+                          v-model="scope.row.supplier"
+                          :defaultList="[scope.row.supplier]"
+                          :remoteFunction="searchSupplier"
                           searchKey="supplierName"
                           searchValue="supplierId"
                         />
@@ -584,12 +579,13 @@
 
 <script setup name="Detail">
 import { getInquiry, updateInquiry, editInquiryStatus, quotedHistory } from '@/api/inquiry'
+import { searchSupplier } from '@/api/brand'
 import { delProduct } from '@/api/product'
 import { delFile } from '@/api/system/info'
 import { nextTick, onBeforeMount, reactive } from 'vue'
 import orderMessage from './orderMessage'
 import { deepClone } from '@/utils/index'
-import SimpleSelectLocal from '@/components/SimpleSelectLocal'
+import SimpleSelect from '@/components/SimpleSelect'
 
 import { getToken } from '@/utils/auth'
 import useUserStore from '@/store/modules/user'
@@ -914,7 +910,7 @@ function getHistory(row) {
   .productList {
     .cell {
       padding: 0 4px 8px;
-      // overflow: visible;/
+      overflow: visible;
       .el-table td.el-table__cell div {
         overflow: visible;
       }
