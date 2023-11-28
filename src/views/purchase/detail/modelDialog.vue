@@ -27,7 +27,7 @@
       <el-form-item label="数量" prop="quantity">
         <el-input-number v-model="form.quantity" :min="1" />
       </el-form-item>
-      <el-form-item label="销售附件" prop="salesAttachmentList" v-hasRole="['sales']">
+      <el-form-item label="销售附件" prop="salesAttachmentList" v-hasRole="['sales', 'salesAdmin']">
         <el-upload
           v-model:file-list="form.salesAttachmentList"
           :action="base + '/system/info/add'"
@@ -139,9 +139,6 @@ const props = defineProps({
 })
 const emit = defineEmits(['editProduct'])
 const { proxy } = getCurrentInstance()
-const isSales = proxy.$auth.hasRole('sales')
-const isPurchase = proxy.$auth.hasRole('purchase')
-const isAdmin = proxy.$auth.hasRole('admin')
 const open = ref(false)
 const data = reactive({
   // 表单参数
@@ -160,7 +157,7 @@ const productRow = ref(null)
 const productIndex = ref(null)
 // 显示弹框
 function show(row, index) {
-  userHasRole.value = proxy.$auth.hasRoleOr(['admin', 'purchase'])
+  userHasRole.value = proxy.$auth.hasRoleOr(['purchaseAdmin', 'purchase'])
   reset()
   if (row) {
     productRow.value = row

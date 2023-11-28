@@ -9,6 +9,7 @@
     default-first-option
     clearable
     remote
+    allow-create
     placeholder="请输入品牌名称"
     remote-show-suffix
     :remote-method="handleSearchBrandList"
@@ -24,7 +25,7 @@
       :label="item.brandName"
       :value="item"
     >
-      <img :src="item.logo || defaultLogo" style="width: 22px; height: 22px" />
+      <img :src="item.brandLogo || defaultLogo" style="width: 22px; height: 22px" />
       <span style="width: 100px">{{ item.brandName }}</span>
       <span style="width: 50px; color: var(--el-text-color-secondary); font-size: 12px; margin-left: 4px">
         {{ item.country || '未知国家' }}

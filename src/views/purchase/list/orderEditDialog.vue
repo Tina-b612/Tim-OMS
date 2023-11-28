@@ -247,7 +247,6 @@ function handleDeleteOrderItem(index) {
     .then(() => {
       proxy.$modal.msgSuccess('删除成功')
     })
-    .catch(() => {})
 }
 // 提交订单
 function submitForm(orderState) {

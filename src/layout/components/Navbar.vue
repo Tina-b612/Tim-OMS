@@ -92,13 +92,11 @@ function logout() {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning',
-  })
-    .then(() => {
-      userStore.logOut().then(() => {
-        location.href = '/index'
-      })
+  }).then(() => {
+    userStore.logOut().then(() => {
+      location.href = '/index'
     })
-    .catch(() => {})
+  })
 }
 
 const emits = defineEmits(['setLayout'])

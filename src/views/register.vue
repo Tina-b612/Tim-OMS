@@ -116,11 +116,9 @@ function handleRegister() {
           ElMessageBox.alert("<font color='red'>恭喜你，您的账号 " + username + ' 注册成功！</font>', '系统提示', {
             dangerouslyUseHTMLString: true,
             type: 'success',
+          }).then(() => {
+            router.push('/login')
           })
-            .then(() => {
-              router.push('/login')
-            })
-            .catch(() => {})
         })
         .catch(() => {
           loading.value = false

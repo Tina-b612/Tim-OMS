@@ -520,7 +520,6 @@ function handleDelete(row) {
       getList()
       proxy.$modal.msgSuccess('删除成功')
     })
-    .catch(() => {})
 }
 /** 导出按钮操作 */
 function handleExport() {
@@ -580,7 +579,6 @@ function handleResetPwd(row) {
         proxy.$modal.msgSuccess('修改成功，新密码是：' + value)
       })
     })
-    .catch(() => {})
 }
 /** 选择条数  */
 function handleSelectionChange(selection) {

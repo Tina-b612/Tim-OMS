@@ -73,7 +73,7 @@
                         link
                         type="primary"
                         icon="Delete"
-                        @click="handleDeleteOrderItem(scope.$index)"
+                        @click="handleDeleteOrderItem(scope.row, scope.$index)"
                       ></el-button>
                     </el-tooltip>
                   </template>
@@ -136,16 +136,15 @@ function handleAddProduct() {
 }
 
 //删除型号
-function handleDeleteOrderItem(index) {
+function handleDeleteOrderItem(item, index) {
   proxy.$modal
-    .confirm('当前操作不可恢复，是否确认删除型号为"' + item.productName + '"产品?')
+    .confirm('当前操作不可恢复，是否确认删除本产品?')
     .then(function () {
       form.value.productList.splice(index, 1)
     })
     .then(() => {
       proxy.$modal.msgSuccess('删除成功')
     })
-    .catch(() => {})
 }
 
 // 提交订单
@@ -153,19 +152,15 @@ function submitForm(orderState) {
   proxy.$refs['orderRef'].validate((valid) => {
     if (valid) {
       form.value.inquiryStatus = orderState
-      addInquiry(form.value)
-        .then((response) => {
-          if (orderState === 1) {
-            proxy.$modal.msgSuccess('保存成功')
-          } else {
-            proxy.$modal.msgSuccess('新增成功')
-          }
+      addInquiry(form.value).then((response) => {
+        if (orderState === 1) {
+          proxy.$modal.msgSuccess('保存成功')
+        } else {
+          proxy.$modal.msgSuccess('新增成功')
+        }
 
-          proxy.$tab.closeOpenPage({ path: '/inquiry' })
-        })
-        .catch((err) => {
-          proxy.$modal.msgError(err)
-        })
+        proxy.$tab.closeOpenPage({ path: '/inquiry' })
+      })
     }
   })
 }

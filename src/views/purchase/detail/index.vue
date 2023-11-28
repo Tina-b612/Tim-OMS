@@ -7,12 +7,7 @@
             <el-button v-show="[0, 6].includes(orderState)" type="success" @click="submitForm(6)">保存为草稿</el-button>
             <el-button v-show="[0, 6].includes(orderState)" type="success" @click="submitForm(1)">发送询价</el-button>
             <el-button v-show="[0, 6].includes(orderState)" type="primary" plain @click="cancel()">取消</el-button>
-            <el-button
-              v-show="[1, 2].includes(orderState)"
-              v-hasRole="['admin', 'sales', 'purchase']"
-              type="primary"
-              @click="submitForm(orderState)"
-            >
+            <el-button v-show="[1, 2].includes(orderState)" type="primary" @click="submitForm(orderState)">
               修改询价
             </el-button>
           </el-row>
@@ -133,8 +128,8 @@ const canChange = ref(false)
 const orderState = ref(0)
 const orderId = proxy.$route.query.id
 const userHasRole = ref(false)
-const isSales = proxy.$auth.hasRole('sales')
-const isPurchase = proxy.$auth.hasRole('purchase')
+const isSales = proxy.$auth.hasRoleOr(['sales', 'salesAdmin'])
+const isPurchase = proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])
 const timingTimeStr = ref('')
 const base = import.meta.env.VITE_APP_BASE_API
 const headers = ref({ Authorization: 'Bearer ' + getToken() })
@@ -167,7 +162,7 @@ const totalPrice = ref(0)
 const { form, rules, valueRule } = toRefs(data)
 
 onBeforeMount(() => {
-  userHasRole.value = proxy.$auth.hasRoleOr(['admin', 'purchase'])
+  userHasRole.value = proxy.$auth.hasRoleOr(['purchaseAdmin', 'purchase'])
   if (orderId) {
     const route = Object.assign({}, proxy.$route, { title: '编辑采购单' })
     proxy.$tab.updatePage(route)
@@ -262,14 +257,13 @@ function updateProduct(product, index) {
 //删除型号
 function handleDeleteOrderItem(index) {
   proxy.$modal
-    .confirm('当前操作不可恢复，是否确认删除型号为"' + item.productName + '"产品?')
+    .confirm('当前操作不可恢复，是否确认删除型号本产品?')
     .then(function () {
       form.value.timProductList.splice(index, 1)
     })
     .then(() => {
       proxy.$modal.msgSuccess('删除成功')
     })
-    .catch(() => {})
 }
 // 选择产品
 // const selectionProduct = []
@@ -289,47 +283,37 @@ function submitForm(orderState) {
       }
 
       form.value.orderState = orderState
-      addOrder(form.value)
-        .then((response) => {
-          if (orderState === 1) {
-            proxy.$modal.msgSuccess('保存成功')
-          } else {
-            proxy.$modal.msgSuccess('新增成功')
-          }
+      addOrder(form.value).then((response) => {
+        if (orderState === 1) {
+          proxy.$modal.msgSuccess('保存成功')
+        } else {
+          proxy.$modal.msgSuccess('新增成功')
+        }
 
-          proxy.$tab.closeOpenPage({ path: '/purchase/list' })
-        })
-        .catch((err) => {
-          proxy.$modal.msgError(err)
-        })
+        proxy.$tab.closeOpenPage({ path: '/purchase/list' })
+      })
     }
   })
 }
 // 取消新增
 function cancel() {
-  proxy.$modal
-    .confirm('是否确认取消订单?')
-    .then(function () {
-      form.value.orderState = 7
-      updateOrder(form.value).then((response) => {
-        proxy.$modal.msgSuccess('取消成功')
-        proxy.$tab.closeOpenPage({ path: '/purchase/list' })
-      })
+  proxy.$modal.confirm('是否确认取消订单?').then(function () {
+    form.value.orderState = 7
+    updateOrder(form.value).then((response) => {
+      proxy.$modal.msgSuccess('取消成功')
+      proxy.$tab.closeOpenPage({ path: '/purchase/list' })
     })
-    .catch(() => {})
+  })
 }
 // 确认收货
 function confirm() {
-  proxy.$modal
-    .confirm('确认客户已签收货物吗？')
-    .then(function () {
-      form.value.orderState = 5
-      updateOrder(form.value).then((response) => {
-        // proxy.$modal.msgSuccess('取消成功')
-        proxy.$tab.closeOpenPage({ path: '/purchase/list' })
-      })
+  proxy.$modal.confirm('确认客户已签收货物吗？').then(function () {
+    form.value.orderState = 5
+    updateOrder(form.value).then((response) => {
+      // proxy.$modal.msgSuccess('取消成功')
+      proxy.$tab.closeOpenPage({ path: '/purchase/list' })
     })
-    .catch(() => {})
+  })
 }
 // 表单重置
 function reset() {

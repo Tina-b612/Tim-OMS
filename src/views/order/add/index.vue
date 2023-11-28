@@ -326,14 +326,13 @@ function handleAddProduct() {
 //删除型号
 function handleDeleteOrderItem(index) {
   proxy.$modal
-    .confirm('当前操作不可恢复，是否确认删除型号为"' + item.productName + '"产品?')
+    .confirm('当前操作不可恢复，是否确认删除本产品?')
     .then(function () {
       form.value.productList.splice(index, 1)
     })
     .then(() => {
       proxy.$modal.msgSuccess('删除成功')
     })
-    .catch(() => {})
 }
 
 // 提交订单

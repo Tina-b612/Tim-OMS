@@ -260,7 +260,7 @@
             class="mt20"
             label="PI号"
             prop="piSn"
-            v-if="orderStatus >= 3 && proxy.$auth.hasRole('sales')"
+            v-if="orderStatus >= 3 && proxy.$auth.hasRoleOr(['sales','salesAdmin'])"
           >
             <el-input v-model="form.piSn" placeholder="请输入PI号" v-if="orderStatus === 3" />
             <span v-else>{{ form.piSn }}</span>
@@ -268,7 +268,7 @@
 
           <!-- 
           <p>{{ ![0].includes(orderStatus) }}</p>
-          <p>{{ proxy.$auth.hasRole('purchase') && pageEdit }}</p> -->
+          <p>{{ proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin']) && pageEdit }}</p> -->
           <div class="mt20">
             <el-form-item label="产品明细">
               <el-table
@@ -349,7 +349,7 @@
                     </div>
                   </template>
                 </el-table-column>
-                <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase']">
+                <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase', 'purchaseAdmin']">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.supplierId'" :rules="valueRule">
                       <simple-select-local
@@ -366,7 +366,7 @@
                 <el-table-column
                   prop="productPurchasePrice"
                   label="未税单价"
-                  v-if="orderStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
                   width="100"
                 >
                   <template #default="scope">
@@ -383,7 +383,7 @@
                 <el-table-column
                   prop="productReferencePrice"
                   label="建议售价"
-                  v-if="orderStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
                   width="100"
                 >
                   <template #default="scope">
@@ -397,7 +397,7 @@
                 <el-table-column
                   prop="orderPurchaseTotalPrice"
                   label="采购总价"
-                  v-if="orderStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
                   width="100"
                 >
                   <!-- <template #default="scope">
@@ -407,7 +407,7 @@
                 <el-table-column
                   prop="productDeliveryTime"
                   label="预计货期"
-                  v-if="orderStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
                   width="100"
                 >
                   <template #default="scope">
@@ -418,7 +418,7 @@
                 <el-table-column
                   prop="purchaseFileList"
                   label="采购附件"
-                  v-if="orderStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
                   width="150"
                 >
                   <template #default="scope">
@@ -445,7 +445,7 @@
                 <el-table-column
                   prop="productPurchaseMethod"
                   label="采购方式"
-                  v-if="orderStatus >= 3 || proxy.$auth.hasRole('purchase')"
+                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
                   width="100"
                 >
                   <template #default="scope">
@@ -470,7 +470,11 @@
                     <el-tooltip
                       content="历史成交价"
                       placement="top"
-                      v-if="scope.row.productId && ![0].includes(orderStatus) && proxy.$auth.hasRole('purchase')"
+                      v-if="
+                        scope.row.productId &&
+                        ![0].includes(orderStatus) &&
+                        proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])
+                      "
                     >
                       <el-button link type="primary" icon="Clock"></el-button>
                     </el-tooltip>
@@ -673,7 +677,7 @@ function handleAddProduct() {
 }
 // 删除产品
 function handleDeleteOrderItem(item, index) {
-  proxy.$modal.confirm('当前操作不可恢复，是否确认删除型号为"' + item.productName + '"产品?').then(function () {
+  proxy.$modal.confirm('当前操作不可恢复，是否确认删除本产品?').then(function () {
     if (item.productId) {
       delProduct(item.productId).then((res) => {
         proxy.$modal.msgSuccess('删除成功')

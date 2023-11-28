@@ -12,7 +12,7 @@
         style="width: 100%"
       >
         <el-table-column type="index" width="60" label="序号" fixed="left" />
-        <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase']">
+        <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase', 'purchaseAdmin']">
           <template #header>
             <span class="danger">*</span>
             供应商
