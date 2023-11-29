@@ -89,7 +89,7 @@
               <el-descriptions size="large" class="ml20 inquiryInfo" style="width: 800px" :column="2">
                 <el-descriptions-item label="品牌" class-name="brandInfo">
                   <div v-if="form.rtBrand" style="display: inline-block">
-                    <el-avatar shape="square" :src="form.rtBrand.brandLogo">
+                    <el-avatar shape="square" :src="base + form.rtBrand.brandLogo">
                       <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png" />
                     </el-avatar>
                     <span class="ml10">{{ form.rtBrand.brandName }}</span>
