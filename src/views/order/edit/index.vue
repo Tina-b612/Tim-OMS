@@ -64,20 +64,9 @@
               </el-descriptions-item>
             </el-descriptions>
 
-            <el-form-item
-              class="mt20"
-              label="订单描述"
-              prop="orderDescription"
-              v-if="pageEdit || [0].includes(orderStatus)"
-            >
-              <el-input
-                :rows="3"
-                maxlength="255"
-                show-word-limit
-                type="textarea"
-                v-model="form.orderDescription"
-                placeholder="请输入订单描述"
-              />
+            <el-form-item class="mt20" label="订单描述" prop="orderDescription" v-if="pageEdit || [0].includes(orderStatus)">
+              <el-input :rows="3" maxlength="255" show-word-limit type="textarea" v-model="form.orderDescription"
+                placeholder="请输入订单描述" />
             </el-form-item>
           </div>
           <!-- 合计 -->
@@ -95,13 +84,7 @@
                   <el-form-item label="税率" prop="orderTaxRate">
                     <template #label>
                       税率
-                      <el-popover
-                        placement="top"
-                        :width="200"
-                        effect="dark"
-                        trigger="hover"
-                        content="未税为0或者含税的税点"
-                      >
+                      <el-popover placement="top" :width="200" effect="dark" trigger="hover" content="未税为0或者含税的税点">
                         <template #reference>
                           <el-icon style="display: inline-block; line-height: 36px; cursor: pointer">
                             <Warning />
@@ -111,12 +94,8 @@
                       :
                     </template>
 
-                    <el-input
-                      v-if="pageEdit || [0].includes(orderStatus)"
-                      v-model="form.orderTaxRate"
-                      style="width: 130px"
-                      @input="getTotalPrice"
-                    >
+                    <el-input v-if="pageEdit || [0].includes(orderStatus)" v-model="form.orderTaxRate"
+                      style="width: 130px" @input="getTotalPrice">
                       <template #append>%</template>
                     </el-input>
                     <span v-else>{{ form.orderTaxRate || 0 }} %</span>
@@ -124,13 +103,7 @@
                   <el-form-item label="杂费" prop="orderOtherFee">
                     <template #label>
                       杂费
-                      <el-popover
-                        placement="top"
-                        :width="200"
-                        effect="dark"
-                        trigger="hover"
-                        content="包装费、税费、附加费等合计"
-                      >
+                      <el-popover placement="top" :width="200" effect="dark" trigger="hover" content="包装费、税费、附加费等合计">
                         <template #reference>
                           <el-icon style="display: inline-block; line-height: 36px; cursor: pointer">
                             <Warning />
@@ -139,12 +112,8 @@
                       </el-popover>
                       :
                     </template>
-                    <el-input
-                      v-if="pageEdit || [0].includes(orderStatus)"
-                      v-model="form.orderOtherFee"
-                      style="width: 150px"
-                      @input="getTotalPrice"
-                    >
+                    <el-input v-if="pageEdit || [0].includes(orderStatus)" v-model="form.orderOtherFee"
+                      style="width: 150px" @input="getTotalPrice">
                       <template #append>元</template>
                     </el-input>
                     <span v-else>¥ {{ form.orderOtherFee || 0 }}</span>
@@ -157,13 +126,8 @@
             <el-col :span="14" class="total-price-right" v-if="orderStatus > 1">
               <el-card class="total-price-content" header="付款列表">
                 <!-- <h3 class="ml20">付款列表</h3> -->
-                <el-table
-                  :data="form.paymentList"
-                  border
-                  :header-cell-style="{ 'text-align': 'center' }"
-                  :cell-style="{ 'text-align': 'center' }"
-                  style="width: 100%"
-                >
+                <el-table :data="form.paymentList" border :header-cell-style="{ 'text-align': 'center' }"
+                  :cell-style="{ 'text-align': 'center' }" style="width: 100%">
                   <el-table-column type="expand">
                     <template #default="scope">
                       <el-descriptions size="small" style="padding: 5px 20px">
@@ -207,17 +171,13 @@
                   </el-table-column>
                   <el-table-column label="付款证明" prop="paymentProveFileList" v-if="proxy.$auth.hasRole('manager')">
                     <template #default="scope">
-                      <el-upload
-                        v-if="!scope.row.paymentStatus"
-                        v-model:file-list="scope.row.paymentProveFileList"
-                        :action="base + '/system/info/add'"
-                        :limit="1"
-                        :headers="headers"
-                        accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
-                        :on-success="handleUploadSuccess"
-                        :on-preview="handleFilePreview"
-                      >
-                        <el-icon><Plus /></el-icon>
+                      <el-upload v-if="!scope.row.paymentStatus" v-model:file-list="scope.row.paymentProveFileList"
+                        :action="base + '/system/info/add'" :limit="1" :headers="headers"
+                        accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf" :on-success="handleUploadSuccess"
+                        :on-preview="handleFilePreview">
+                        <el-icon>
+                          <Plus />
+                        </el-icon>
                       </el-upload>
                       <div v-else class="link-type text-overflow fs12">
                         <a :href="scope.row.paymentContractFileList[0].url" target="_blank">
@@ -232,22 +192,12 @@
                   <el-table-column label="操作" prop="orderSn" v-if="proxy.$auth.hasRole('manager')">
                     <template #default="scope">
                       <el-tooltip content="确认付款" placement="top">
-                        <el-button
-                          type="primary"
-                          icon="Sell"
-                          link
-                          @click="handlePay(scope.row)"
-                          :disabled="scope.row.paymentStatus !== 0"
-                        ></el-button>
+                        <el-button type="primary" icon="Sell" link @click="handlePay(scope.row)"
+                          :disabled="scope.row.paymentStatus !== 0"></el-button>
                       </el-tooltip>
                       <el-tooltip content="拒绝付款" placement="top">
-                        <el-button
-                          type="danger"
-                          icon="SoldOut"
-                          link
-                          :disabled="scope.row.paymentStatus !== 0"
-                          @click="handleCanclePay(scope.row)"
-                        ></el-button>
+                        <el-button type="danger" icon="SoldOut" link :disabled="scope.row.paymentStatus !== 0"
+                          @click="handleCanclePay(scope.row)"></el-button>
                       </el-tooltip>
                     </template>
                   </el-table-column>
@@ -271,78 +221,48 @@
           <p>{{ proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin']) && pageEdit }}</p> -->
           <div class="mt20">
             <el-form-item label="产品明细">
-              <el-table
-                :data="form.productList"
-                border
-                class="productList"
-                :header-cell-style="{ 'text-align': 'center' }"
-                :cell-style="{ 'text-align': 'center' }"
-                style="width: 100%"
-                @selection-change="handleSelectionChange"
-              >
+              <el-table :data="form.productList" border class="productList"
+                :header-cell-style="{ 'text-align': 'center' }" :cell-style="{ 'text-align': 'center' }"
+                style="width: 100%" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="55" v-if="orderStatus === 3" />
                 <!-- <el-table-column type="index" width="50" label="序号" fixed="left" /> -->
-                <el-table-column
-                  prop="productName"
-                  label="型号"
-                  fixed="left"
-                  :width="[0].includes(orderStatus) || pageEdit ? 160 : 'auto'"
-                >
+                <el-table-column prop="productName" label="型号" fixed="left"
+                  :width="[0].includes(orderStatus) || pageEdit ? 160 : 'auto'">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.productName'" :rules="valueRule">
-                      <el-input
-                        v-model="scope.row.productName"
-                        placeholder="请输入产品型号"
-                        v-if="scope.row.edit || orderStatus === 0"
-                      ></el-input>
+                      <el-input v-model="scope.row.productName" placeholder="请输入产品型号"
+                        v-if="scope.row.edit || orderStatus === 0"></el-input>
                       <span v-else>{{ scope.row.productName }}</span>
                     </el-form-item>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  prop="productDescription"
-                  label="产品描述"
-                  :show-overflow-tooltip="true"
-                  :width="[0].includes(orderStatus) || pageEdit ? 160 : 'auto'"
-                >
+                <el-table-column prop="productDescription" label="产品描述" :show-overflow-tooltip="true"
+                  :width="[0].includes(orderStatus) || pageEdit ? 160 : 'auto'">
                   <template #default="scope">
-                    <el-input
-                      v-model="scope.row.productDescription"
-                      placeholder="请输入产品描述"
-                      v-if="scope.row.edit || orderStatus === 0"
-                    ></el-input>
+                    <el-input v-model="scope.row.productDescription" placeholder="请输入产品描述"
+                      v-if="scope.row.edit || orderStatus === 0"></el-input>
                     <span v-else>{{ scope.row.productDescription }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  prop="productQuantity"
-                  label="数量"
-                  :width="[0].includes(orderStatus) || pageEdit ? 160 : 'auto'"
-                >
+                <el-table-column prop="productQuantity" label="数量"
+                  :width="[0].includes(orderStatus) || pageEdit ? 160 : 'auto'">
                   <template #default="scope">
-                    <el-input-number
-                      v-model="scope.row.productQuantity"
-                      :min="1"
+                    <el-input-number v-model="scope.row.productQuantity" :min="1"
                       v-if="scope.row.edit || orderStatus === 0"
-                      @input="getPurchaseTotalPrice(scope.row)"
-                    ></el-input-number>
+                      @input="getPurchaseTotalPrice(scope.row)"></el-input-number>
                     <span v-else>{{ scope.row.productQuantity }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column prop="salesFileList" label="销售附件" width="150">
                   <template #default="scope">
-                    <el-upload
-                      v-if="scope.row.edit || orderStatus === 0"
-                      v-model:file-list="scope.row.salesFileList"
-                      :action="base + '/system/info/add'"
-                      :limit="3"
-                      :headers="headers"
-                      accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
-                      :on-success="handleUploadSuccess"
-                      :on-preview="handleFilePreview"
-                    >
+                    <el-upload v-if="scope.row.edit || orderStatus === 0" v-model:file-list="scope.row.salesFileList"
+                      :action="base + '/system/info/add'" :limit="3" :headers="headers"
+                      accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf" :on-success="handleUploadSuccess"
+                      :on-preview="handleFilePreview">
                       <!-- <el-button type="primary" :disabled="!scope.row.edit">上传附件</el-button> -->
-                      <el-icon><Plus /></el-icon>
+                      <el-icon>
+                        <Plus />
+                      </el-icon>
                     </el-upload>
                     <div v-else v-for="item in scope.row.salesFileList" class="link-type text-overflow fs12">
                       {{ item.fileName }}
@@ -352,88 +272,52 @@
                 <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase', 'purchaseAdmin']">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.supplierId'" :rules="valueRule">
-                      <simple-select-local
-                        v-if="!orderStatus || scope.row.edit"
-                        v-model="scope.row.supplierId"
-                        :defaultList="form.supplierList"
-                        searchKey="supplierName"
-                        searchValue="supplierId"
-                      />
+                      <simple-select-local v-if="!orderStatus || scope.row.edit" v-model="scope.row.supplierId"
+                        :defaultList="form.supplierList" searchKey="supplierName" searchValue="supplierId" />
                       <span v-else>{{ scope.row.supplierName }}</span>
                     </el-form-item>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  prop="productPurchasePrice"
-                  label="未税单价"
-                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
-                  width="100"
-                >
+                <el-table-column prop="productPurchasePrice" label="未税单价"
+                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])" width="100">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.productPurchasePrice'" :rules="valueRule">
-                      <el-input
-                        v-if="!orderStatus || scope.row.edit"
-                        v-model="scope.row.productPurchasePrice"
-                        @input="getPurchaseTotalPrice(scope.row)"
-                      ></el-input>
+                      <el-input v-if="!orderStatus || scope.row.edit" v-model="scope.row.productPurchasePrice"
+                        @input="getPurchaseTotalPrice(scope.row)"></el-input>
                       <span v-else>{{ scope.row.productPurchasePrice }}</span>
                     </el-form-item>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  prop="productReferencePrice"
-                  label="建议售价"
-                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
-                  width="100"
-                >
+                <el-table-column prop="productReferencePrice" label="建议售价"
+                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])" width="100">
                   <template #default="scope">
-                    <el-input
-                      v-if="!orderStatus || scope.row.edit"
-                      v-model="scope.row.productReferencePrice"
-                    ></el-input>
+                    <el-input v-if="!orderStatus || scope.row.edit" v-model="scope.row.productReferencePrice"></el-input>
                     <span v-else>{{ scope.row.productReferencePrice }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  prop="orderPurchaseTotalPrice"
-                  label="采购总价"
-                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
-                  width="100"
-                >
+                <el-table-column prop="orderPurchaseTotalPrice" label="采购总价"
+                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])" width="100">
                   <!-- <template #default="scope">
                     <span>{{ scope.row.productPurchasePrice * scope.row.productQuantity }}</span>
                   </template> -->
                 </el-table-column>
-                <el-table-column
-                  prop="productDeliveryTime"
-                  label="预计货期"
-                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
-                  width="100"
-                >
+                <el-table-column prop="productDeliveryTime" label="预计货期"
+                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])" width="100">
                   <template #default="scope">
                     <el-input v-if="!orderStatus || scope.row.edit" v-model="scope.row.productDeliveryTime"></el-input>
                     <span v-else>{{ scope.row.productDeliveryTime }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  prop="purchaseFileList"
-                  label="采购附件"
-                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
-                  width="150"
-                >
+                <el-table-column prop="purchaseFileList" label="采购附件"
+                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])" width="150">
                   <template #default="scope">
-                    <el-upload
-                      v-if="!orderStatus || scope.row.edit"
-                      v-model:file-list="scope.row.purchaseFileList"
-                      :action="base + '/system/info/add'"
-                      :limit="3"
-                      :headers="headers"
-                      accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
-                      :on-success="handleUploadSuccess"
-                      :on-preview="handleFilePreview"
-                      :before-remove="handleFileRemove"
-                    >
-                      <el-icon><Plus /></el-icon>
+                    <el-upload v-if="!orderStatus || scope.row.edit" v-model:file-list="scope.row.purchaseFileList"
+                      :action="base + '/system/info/add'" :limit="3" :headers="headers"
+                      accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf" :on-success="handleUploadSuccess"
+                      :on-preview="handleFilePreview" :before-remove="handleFileRemove">
+                      <el-icon>
+                        <Plus />
+                      </el-icon>
                     </el-upload>
                     <div v-else>
                       <div v-for="item in scope.row.purchaseFileList" class="link-type text-overflow fs12">
@@ -442,67 +326,35 @@
                     </div>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  prop="productPurchaseMethod"
-                  label="采购方式"
-                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
-                  width="100"
-                >
+                <el-table-column prop="productPurchaseMethod" label="采购方式"
+                  v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])" width="100">
                   <template #default="scope">
-                    <el-form-item
-                      v-if="!orderStatus || scope.row.edit"
-                      :prop="'productList.' + scope.$index + '.productPurchaseMethod'"
-                      :rules="valueRule"
-                    >
+                    <el-form-item v-if="!orderStatus || scope.row.edit"
+                      :prop="'productList.' + scope.$index + '.productPurchaseMethod'" :rules="valueRule">
                       <el-input v-model="scope.row.productPurchaseMethod"></el-input>
                     </el-form-item>
                     <span v-else>{{ scope.row.productPurchaseMethod }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  label="操作"
-                  align="center"
-                  width="150"
-                  fixed="right"
-                  v-if="[0, 1].includes(orderStatus)"
-                >
+                <el-table-column label="操作" align="center" width="150" fixed="right" v-if="[0, 1].includes(orderStatus)">
                   <template #default="scope">
-                    <el-tooltip
-                      content="历史成交价"
-                      placement="top"
-                      v-if="
-                        scope.row.productId &&
-                        ![0].includes(orderStatus) &&
-                        proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])
-                      "
-                    >
+                    <el-tooltip content="历史成交价" placement="top" v-if="scope.row.productId &&
+                      ![0].includes(orderStatus) &&
+                      proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])
+                      ">
                       <el-button link type="primary" icon="Clock"></el-button>
                     </el-tooltip>
                     <el-tooltip content="编辑" placement="top" v-if="scope.row.productId && ![0].includes(orderStatus)">
-                      <el-button
-                        link
-                        type="primary"
-                        icon="Edit"
-                        :disabled="!pageEdit || !scope.row.btnEdit"
-                        @click="handleEditProduct(scope.$index)"
-                      ></el-button>
+                      <el-button link type="primary" icon="Edit" :disabled="!pageEdit || !scope.row.btnEdit"
+                        @click="handleEditProduct(scope.$index)"></el-button>
                     </el-tooltip>
                     <el-tooltip content="删除" placement="top" v-if="[0].includes(orderStatus)">
-                      <el-button
-                        link
-                        type="primary"
-                        icon="Delete"
-                        @click="handleDeleteOrderItem(scope.row, scope.$index)"
-                      ></el-button>
+                      <el-button link type="primary" icon="Delete"
+                        @click="handleDeleteOrderItem(scope.row, scope.$index)"></el-button>
                     </el-tooltip>
                     <el-tooltip content="删除" placement="top" v-else>
-                      <el-button
-                        link
-                        type="primary"
-                        icon="Delete"
-                        :disabled="!pageEdit || !scope.row.btnEdit"
-                        @click="handleDeleteOrderItem(scope.row, scope.$index)"
-                      ></el-button>
+                      <el-button link type="primary" icon="Delete" :disabled="!pageEdit || !scope.row.btnEdit"
+                        @click="handleDeleteOrderItem(scope.row, scope.$index)"></el-button>
                     </el-tooltip>
                   </template>
                 </el-table-column>
@@ -511,12 +363,8 @@
           </div>
         </el-form>
         <el-row class="bgWhite flex-center-right btn-box">
-          <el-button
-            v-show="pageEdit || [0].includes(orderStatus)"
-            :disabled="btnAddDiabled"
-            type="primary"
-            @click="handleAddProduct()"
-          >
+          <el-button v-show="pageEdit || [0].includes(orderStatus)" :disabled="btnAddDiabled" type="primary"
+            @click="handleAddProduct()">
             添加产品
           </el-button>
         </el-row>
@@ -626,12 +474,12 @@ function getInfo() {
       data.productList = data.productList.map((item) => {
         item.edit = false
         item.btnEdit = true
-        item.defaultSupplierList = [
-          {
-            supplierId: item.supplierId,
-            supplierName: item.supplierName,
-          },
-        ]
+        // item.defaultSupplierList = [
+        //   {
+        //     supplierId: item.supplierId,
+        //     supplierName: item.supplierName,
+        //   },
+        // ]
         ordersupplierList.value.push({
           supplierId: item.supplierId,
           supplierName: item.supplierName,
@@ -844,12 +692,14 @@ function handleCanclePay(row) {
 /* style */
 .order-detail {
   background: #eee;
+
   .brand {
     margin-left: 20px;
     font-size: 18px;
     font-weight: 400;
     line-height: 40px;
   }
+
   .inquiryInfo {
     .brandInfo {
       span {
@@ -858,51 +708,62 @@ function handleCanclePay(row) {
         vertical-align: middle;
       }
     }
+
     .inquiryDescription {
       width: 500px;
       display: inline-block;
       vertical-align: middle;
     }
   }
+
   .descriptions-content {
     text-decoration: underline;
   }
+
   .right {
     position: absolute;
     top: 0;
     right: 0;
   }
+
   .orderForm {
     .brand-desc {
       line-height: 40px;
     }
+
     .el-textarea {
       max-width: 420px;
     }
+
     .el-input {
       max-width: 420px;
     }
   }
+
   .btn-box {
     padding-top: 0;
   }
+
   .productList {
     .cell {
       padding: 0 4px 12px;
       overflow: visible;
     }
-    .el-form-item--default .el-form-item__content > span {
+
+    .el-form-item--default .el-form-item__content>span {
       display: inline-block;
       width: 100%;
       text-align: center;
     }
   }
+
   .totalPrice {
     // display: flex;
     // justify-content: end;
     font-size: 16px;
     line-height: 32px;
     padding-right: 20px;
+
     // span {
     //   font-size: 22px;
     // }
@@ -910,10 +771,12 @@ function handleCanclePay(row) {
       font-weight: bold;
       // font-size: 22px;
     }
+
     .primary {
       color: var(--el-color-primary);
     }
   }
+
   .table-clumn-number .cell {
     padding: 0;
 
@@ -931,6 +794,7 @@ function handleCanclePay(row) {
       // background: rgba(0, 0, 0, 0.03);
       // padding: 5px 20px 10px;
       margin-top: 20px;
+
       // border-radius: 15px;
       h3 {
         line-height: 1;
@@ -947,6 +811,7 @@ function handleCanclePay(row) {
     justify-content: space-between;
 
     border-bottom: 1px solid var(--el-border-color);
+
     .desc span {
       margin-left: 25px;
 
@@ -967,11 +832,13 @@ function handleCanclePay(row) {
     font-size: 15px;
     line-height: 24px;
   }
+
   .purchase-order-main {
     box-sizing: border-box;
     background: #fff;
     padding-top: 5px;
   }
+
   .purchase-order {
     position: relative;
     padding: 20px;

@@ -1,25 +1,9 @@
 <template>
-  <el-select
-    v-model="selection"
-    :value-key="props.searchKey"
-    filterable
-    default-first-option
-    clearable
-    remote
-    allow-create
-    :placeholder="placeholder"
-    remote-show-suffix
-    :remote-method="handleSearch"
-    @change="selectChange"
-    :loading="selectLoading"
-  >
-    <el-option
-      style="width: 280px"
-      v-for="item in searchList"
-      :key="item[props.searchValue]"
-      :label="item[props.searchKey]"
-      :value="item"
-    >
+  <el-select v-model="selection" :value-key="props.searchKey" filterable default-first-option clearable remote
+    allow-create :placeholder="placeholder" remote-show-suffix :remote-method="handleSearch" @change="selectChange"
+    :loading="selectLoading">
+    <el-option style="width: 280px" v-for="item in searchList" :key="item[props.searchValue]"
+      :label="item[props.searchKey]" :value="item">
       <span style="width: 100px">{{ item[[props.searchKey]] }}</span>
     </el-option>
   </el-select>
@@ -65,7 +49,7 @@ watch(
   () => {
     selection.value = props.modelValue
     console.log('回显值:')
-    console.log(props.defaultList)
+    console.log(props.modelValue)
   }
 )
 
