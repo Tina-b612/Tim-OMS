@@ -339,13 +339,19 @@
                   <el-table-column prop="supplier" label="供应商" width="150" v-hasRole="['purchase', 'purchaseAdmin']">
                     <template #default="scope">
                       <el-form-item :prop="'productList.' + scope.$index + '.supplier'" :rules="valueRule">
-                        <simple-select
+                        <!-- <simple-select
                           v-if="inquiryStatus < 3 || scope.row.edit"
                           v-model="scope.row.supplier"
                           :defaultList="scope.row.supplier ? [scope.row.supplier] : []"
                           :remoteFunction="searchSupplier"
                           searchKey="supplierName"
                           searchValue="supplierId"
+                        /> -->
+                        <supplier-select
+                          v-model="scope.row.supplier"
+                          v-if="inquiryStatus < 3 || scope.row.edit"
+                          :defaultList="scope.row.supplier ? [scope.row.supplier] : []"
+                          :extroProps="{ supplierEnable: 1 }"
                         />
                         <span v-else>{{ scope.row.supplierName }}</span>
                       </el-form-item>
@@ -475,45 +481,26 @@
                     "
                   >
                     <template #default="scope">
-                      <!-- <el-tooltip
-                        content="历史成交价"
-                        placement="top"
-                        v-if="scope.row.productId && ![0].includes(inquiryStatus) && proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
-                      >
-                        <el-button
-                          link
-                          type="primary"
-                          icon="Clock"
-                          :disabled="![1, 2].includes(inquiryStatus) || !scope.row.btnEdit"
-                          @click="getHistory(scope.row)"
-                        ></el-button> 
-                      </el-tooltip> -->
-
                       <el-popover
                         placement="top"
-                        title="历史成交价"
+                        title="历史报价"
                         width="800"
                         trigger="click"
                         v-if="
                           scope.row.productId &&
-                          ![0].includes(inquiryStatus) &&
+                          ([1, 2].includes(inquiryStatus) || (inquiryStatus >= 3 && !scope.row.btnEdit)) &&
                           proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])
                         "
                       >
                         <template #reference>
                           <span class="mr10">
                             <el-tooltip
-                              content="历史成交价"
+                              content="历史报价"
                               placement="top"
                               v-if="scope.row.productId && ![0].includes(inquiryStatus)"
                             >
-                              <el-button
-                                link
-                                type="primary"
-                                icon="Clock"
-                                :disabled="!pageEdit || !scope.row.btnEdit"
-                                @click="getHistory(scope.row)"
-                              ></el-button>
+                              <!-- :disabled="!pageEdit || !scope.row.btnEdit" :disabled="![1].includes(inquiryStatus) && (!pageEdit || !scope.row.btnEdit)"-->
+                              <el-button link type="primary" icon="Clock" @click="getHistory(scope.row)"></el-button>
                             </el-tooltip>
                           </span>
                         </template>
@@ -527,7 +514,14 @@
                           <el-table-column property="productReferencePrice" label="建议售价" />
                           <el-table-column property="productDeliveryTime" label="预计货期" />
                           <el-table-column property="productPurchaseMethod" label="付款方式" />
-                          <el-table-column width="300" property="productUpdateTime" label="报价时间" />
+                          <el-table-column width="160" property="productUpdateTime" label="报价时间" />
+                          <el-table-column label="操作" align="center">
+                            <template #default="price">
+                              <el-button size="small" type="primary" @click="handleUsePrice(price.row, scope.row)">
+                                使用报价
+                              </el-button>
+                            </template>
+                          </el-table-column>
                         </el-table>
                       </el-popover>
                       <el-tooltip
@@ -606,8 +600,9 @@ import { delFile } from '@/api/system/info'
 import { nextTick, onBeforeMount, reactive } from 'vue'
 import orderMessage from './orderMessage'
 import { deepClone } from '@/utils/index'
-import SimpleSelect from '@/components/SimpleSelect'
+// import SimpleSelect from '@/components/SimpleSelect'
 
+import supplierSelect from '@/views/componments/supplierSelect'
 import { getToken } from '@/utils/auth'
 import useUserStore from '@/store/modules/user'
 import { getFloat } from '@/utils/index'
@@ -874,12 +869,25 @@ function handleSelectionChange(val) {
   form.value.inquirySelectedCount = val.length
   form.value.inquirySelectedTotalProducts = count
 }
-// 获取历史成交价
+// 获取历史报价
 const historyList = ref([])
 function getHistory(row) {
   quotedHistory(row.productId).then((res) => {
     historyList.value = res.data
   })
+}
+// 选择历史报价
+function handleUsePrice(price, product) {
+  product.supplier = {
+    supplierId: price.supplierId,
+    supplierName: price.supplierName,
+  }
+  product.productDeliveryTime = price.productDeliveryTime
+  product.productPurchaseMethod = price.productPurchaseMethod
+  product.productPurchasePrice = price.productPurchasePrice
+  product.productReferencePrice = price.productReferencePrice
+
+  getPurchaseTotalPrice(product)
 }
 </script>
 

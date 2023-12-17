@@ -4,6 +4,9 @@
     <div class="inquiry-order">
       <!-- 搜索面板 -->
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-position="left">
+        <el-form-item label="只看自己" prop="ifSelf">
+          <el-switch v-model="queryParams.ifSelf" @change="handleQuery" />
+        </el-form-item>
         <el-form-item label="采购负责人" prop="inquiryPurchaseUserId">
           <simple-select
             v-model="queryParams.brandResponsibleUserId"

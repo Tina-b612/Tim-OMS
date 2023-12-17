@@ -155,7 +155,13 @@
             <!-- 付款合同 暂时没做 -->
             <!-- 付款列表 -->
             <el-col :span="14" class="total-price-right" v-if="orderStatus > 1">
-              <el-card class="total-price-content" header="付款列表">
+              <el-card class="total-price-content" header="付款信息">
+                <template #header>
+                  <div class="card-header">
+                    <span>付款信息</span>
+                    <el-button icon="CopyDocument" link @click="handleCopy(form.paymentList[0])"></el-button>
+                  </div>
+                </template>
                 <!-- <h3 class="ml20">付款列表</h3> -->
                 <el-table
                   :data="form.paymentList"
@@ -193,7 +199,7 @@
                     </template>
                   </el-table-column>
                   <!-- <el-table-column type="index" width="60" label="序号" /> -->
-                  <el-table-column label="供应商" prop="orderSn" />
+                  <el-table-column label="订单编号" prop="orderSn" />
                   <el-table-column label="金额" prop="paymentAmount" />
                   <el-table-column label="采购合同" prop="paymentContractFileList">
                     <template #default="scope">
@@ -352,12 +358,18 @@
                 <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase', 'purchaseAdmin']">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.supplierId'" :rules="valueRule">
-                      <simple-select-local
+                      <!-- <simple-select-local
                         v-if="!orderStatus || scope.row.edit"
                         v-model="scope.row.supplierId"
                         :defaultList="form.supplierList"
                         searchKey="supplierName"
                         searchValue="supplierId"
+                      /> -->
+                      <supplier-select
+                        v-model="scope.row.supplier"
+                        v-if="!orderStatus || scope.row.edit"
+                        :defaultList="scope.row.supplier ? [scope.row.supplier] : []"
+                        :extroProps="{ supplierEnable: 1 }"
                       />
                       <span v-else>{{ scope.row.supplierName }}</span>
                     </el-form-item>
@@ -537,12 +549,14 @@ import { delFile } from '@/api/system/info'
 import { nextTick, onBeforeMount, reactive, ref } from 'vue'
 import orderMessage from './orderMessage'
 import { deepClone } from '@/utils/index'
-import SimpleSelectLocal from '@/components/SimpleSelectLocal'
+// import SimpleSelectLocal from '@/components/SimpleSelectLocal'
+import supplierSelect from '@/views/componments/supplierSelect'
 import signForModel from './signForModel.vue'
 import payInfoDialog from './payInfoDialog.vue'
 import { getToken } from '@/utils/auth'
 import useUserStore from '@/store/modules/user'
 import { getFloat } from '@/utils/index'
+import { copyText } from '../../../utils/copy'
 const user = useUserStore()
 const { proxy } = getCurrentInstance()
 const { order_status } = proxy.useDict('order_status')
@@ -674,6 +688,21 @@ function handleAddProduct() {
     }
     return item
   })
+}
+// 复制付款信息
+function handleCopy(paymentList) {
+  let text = `
+    订单编号：${paymentList.orderSn} 
+    金额：${paymentList.paymentAmount}元 
+    付款编号：${paymentList.paymentSn} 
+    供应商：${paymentList.supplierName} 
+    开户行：${paymentList.paymentBankName} 
+    收款账号：${paymentList.paymentPayeeAccount} 
+    付款方式：${paymentList.paymentMethod} 
+    付款描述：${paymentList.paymentDescription} 
+    申请付款时间：${paymentList.paymentApplyTime} 
+  `
+  copyText(text)
 }
 // 删除产品
 function handleDeleteOrderItem(item, index) {

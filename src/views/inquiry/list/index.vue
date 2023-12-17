@@ -4,9 +4,12 @@
     <div class="inquiry-order">
       <!-- 搜索面板 -->
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-position="left">
+        <el-form-item label="只看自己" prop="ifSelf">
+          <el-switch v-model="queryParams.ifSelf" @change="handleQuery" />
+        </el-form-item>
         <el-form-item label="采购负责人" prop="inquiryPurchaseUserId">
           <simple-select
-            v-model="queryParams.brandResponsibleUserId"
+            v-model="queryParams.InquiryPurchaseUserId"
             :remoteFunction="searchUser"
             searchKey="nickName"
             searchValue="userId"
@@ -15,7 +18,7 @@
         </el-form-item>
         <el-form-item label="销售负责人" prop="inquirySalesUserId">
           <simple-select
-            v-model="queryParams.brandResponsibleUserId"
+            v-model="queryParams.InquirySalesUserId"
             :remoteFunction="searchUser"
             searchKey="nickName"
             searchValue="userId"
@@ -147,6 +150,8 @@ import { reactive } from 'vue'
 import OrderEditDialog from './orderEditDialog'
 import omsMessage from '@/views/componments/omsMessage'
 import SimpleSelect from '@/components/SimpleSelect'
+import useUserStore from '@/store/modules/user'
+console.log(useUserStore())
 
 import defaultLogo from '@/assets/images/default.png'
 
@@ -156,7 +161,6 @@ const { proxy } = getCurrentInstance()
 const { inquiry_status } = proxy.useDict('inquiry_status')
 
 const route = useRoute()
-console.log(route.query.orderstatus)
 
 const loading = ref(true)
 // 显示搜索条件
@@ -259,6 +263,12 @@ function getList() {
     .catch(() => {
       loading.value = false
     })
+}
+
+// 只看自己
+function onlyMySelf() {
+  // let roles = useUserStore().roles
+  // let roles = useUserStore().roles
 }
 
 /** 搜索按钮操作 */

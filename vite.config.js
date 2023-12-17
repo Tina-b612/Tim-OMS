@@ -32,7 +32,7 @@ export default defineConfig(({ mode, command }) => {
         // https://cn.vitejs.dev/config/#server-proxy
         '/dev-api': {
           // target: 'http://localhost:82',
-          // target: 'http://192.168.0.123:8080',
+          // target: 'http://111.229.113.50:8000',
           target: 'http://192.168.0.119:8000',
           // target: 'http://10.0.0.4:8080',
           // target:'https://m323745n69.goho.co',
