@@ -175,7 +175,7 @@
                       <el-descriptions size="small" style="padding: 5px 20px">
                         <el-descriptions-item label="付款编号">{{ scope.row.paymentSn || '-' }}</el-descriptions-item>
                         <el-descriptions-item label="供应商">
-                          {{ scope.row.paymentPayeeName || '-' }}
+                          {{ scope.row.supplierName || '-' }}
                         </el-descriptions-item>
                         <el-descriptions-item label="开户行">
                           {{ scope.row.paymentBankName || '-' }}
