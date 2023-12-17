@@ -35,7 +35,10 @@ const props = defineProps({
   searchKey: String,
   searchValue: String,
   placeholder: String,
-  defaultList: Array,
+  defaultList: {
+    type: Array,
+    default: () => [],
+  },
   supplierEnable: Number,
   brandId: Number,
 })
@@ -47,6 +50,9 @@ onMounted(() => {
   if (props.modelValue) {
     console.log('回显值:')
     console.log(props.modelValue)
+
+    console.log('默认列表:')
+    console.log(props.defaultList)
     selection.value = props.modelValue
   }
 })

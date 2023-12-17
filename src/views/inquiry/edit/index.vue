@@ -342,7 +342,7 @@
                         <simple-select
                           v-if="inquiryStatus < 3 || scope.row.edit"
                           v-model="scope.row.supplier"
-                          :defaultList="[scope.row.supplier]"
+                          :defaultList="scope.row.supplier ? [scope.row.supplier] : []"
                           :remoteFunction="searchSupplier"
                           searchKey="supplierName"
                           searchValue="supplierId"
@@ -501,13 +501,21 @@
                         "
                       >
                         <template #reference>
-                          <el-button
-                            link
-                            type="primary"
-                            icon="Clock"
-                            :disabled="![1, 2].includes(inquiryStatus) || !scope.row.btnEdit"
-                            @click="getHistory(scope.row)"
-                          ></el-button>
+                          <span class="mr10">
+                            <el-tooltip
+                              content="历史成交价"
+                              placement="top"
+                              v-if="scope.row.productId && ![0].includes(inquiryStatus)"
+                            >
+                              <el-button
+                                link
+                                type="primary"
+                                icon="Clock"
+                                :disabled="!pageEdit || !scope.row.btnEdit"
+                                @click="getHistory(scope.row)"
+                              ></el-button>
+                            </el-tooltip>
+                          </span>
                         </template>
                         <el-table
                           :data="historyList"
@@ -533,6 +541,19 @@
                           icon="Edit"
                           :disabled="!pageEdit || !scope.row.btnEdit"
                           @click="handleEditProduct(scope.$index)"
+                        ></el-button>
+                      </el-tooltip>
+                      <el-tooltip
+                        content="复制"
+                        placement="top"
+                        v-if="scope.row.productId && ![0].includes(inquiryStatus)"
+                      >
+                        <el-button
+                          link
+                          type="primary"
+                          icon="CopyDocument"
+                          :disabled="!pageEdit || !scope.row.btnEdit"
+                          @click="handleCopyProduct(scope.row, scope.$index)"
                         ></el-button>
                       </el-tooltip>
                       <el-tooltip content="删除" placement="top" v-if="[0].includes(inquiryStatus)">
@@ -743,6 +764,13 @@ function handleEditProduct(index) {
     product.btnEdit = false
     btnAddDiabled.value = true
   }
+}
+// 复制产品
+function handleCopyProduct(item, index) {
+  let curItem = { ...item, productId: null }
+  let leftList = form.value.productList.slice(0, index + 1)
+  let rightList = form.value.productList.slice(index + 1, form.value.productList.length)
+  form.value.productList = leftList.concat([deepClone(curItem)]).concat(rightList)
 }
 // 提交订单
 function submitForm(inquiryStatus) {
