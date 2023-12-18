@@ -32,7 +32,7 @@
               <el-button @click="handleEditCancle">取消</el-button>
             </div>
             <!-- 默认状态按钮 -->
-            <div class="right" v-show="!pageEdit">
+            <div class="right" v-show="form.ifEditable && !pageEdit">
               <el-button
                 type="primary"
                 v-hasRole="['purchase', 'purchaseAdmin']"

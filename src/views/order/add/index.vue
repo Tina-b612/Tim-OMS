@@ -21,11 +21,7 @@
         >
           <div class="mt20">
             <el-form-item label="品牌" prop="rtBrand" width="600px">
-              <brandSelect
-                v-model="form.rtBrand"
-                :extroProps="{ searchValue: 1, brandEnable: 1 }"
-                @change="getSupplierList"
-              ></brandSelect>
+              <brandSelect v-model="form.rtBrand" :extroProps="{ brandEnable: 1 }"></brandSelect>
             </el-form-item>
             <el-form-item label="订单描述" prop="orderDescription">
               <el-input :rows="3" type="textarea" v-model="form.orderDescription" placeholder="请输入订单描述" />
@@ -136,11 +132,10 @@
                 <el-table-column prop="supplierId" label="供应商" width="150">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.supplierId'">
-                      <simple-select-local
-                        v-model="scope.row.supplierId"
-                        :defaultList="form.supplierList"
-                        searchKey="supplierName"
-                        searchValue="supplierId"
+                      <supplier-select
+                        v-model="scope.row.supplier"
+                        :defaultList="scope.row.supplier ? [scope.row.supplier] : []"
+                        :extroProps="{ supplierEnable: 1 }"
                       />
                     </el-form-item>
                   </template>
@@ -260,7 +255,7 @@ import { nextTick, onBeforeMount, onMounted, reactive } from 'vue'
 import omsMessage from '@/views/componments/omsMessage'
 import brandSelect from '@/views/componments/brandSelect'
 import { deepClone } from '@/utils/index'
-import SimpleSelectLocal from '@/components/SimpleSelectLocal'
+import supplierSelect from '@/views/componments/supplierSelect'
 import { getToken } from '@/utils/auth'
 import { getFloat } from '@/utils/index'
 import { listBrandRelatedSupplier } from '@/api/supplier'
@@ -341,7 +336,7 @@ function submitForm(orderStatus, payment) {
     if (valid) {
       for (let i = 0; i < form.value.productList.length; i++) {
         const item = form.value.productList[i]
-        if (!item.supplierId) {
+        if (!item.supplier) {
           return proxy.$modal.msgError('请选择型号为：' + item.productName + '的供应商')
         }
       }
@@ -395,7 +390,17 @@ function getSupplierList(val) {
 }
 // 申请付款
 function openPayInfo() {
-  proxy.$refs.payInfoDialogRef.show(form.value.piSn)
+  proxy.$refs['orderRef'].validate((valid) => {
+    if (valid) {
+      let list = []
+      for (let i = 0; i < form.value.productList.length; i++) {
+        const item = form.value.productList[i]
+        list.push(item.supplier)
+      }
+      form.value.supplierList = list
+      proxy.$refs.payInfoDialogRef.show(form.value.piSn)
+    }
+  })
 }
 </script>
 

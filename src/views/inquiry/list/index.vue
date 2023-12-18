@@ -9,7 +9,7 @@
         </el-form-item>
         <el-form-item label="采购负责人" prop="inquiryPurchaseUserId">
           <simple-select
-            v-model="queryParams.InquiryPurchaseUserId"
+            v-model="queryParams.inquiryPurchaseUserId"
             :remoteFunction="searchUser"
             searchKey="nickName"
             searchValue="userId"
@@ -18,7 +18,7 @@
         </el-form-item>
         <el-form-item label="销售负责人" prop="inquirySalesUserId">
           <simple-select
-            v-model="queryParams.InquirySalesUserId"
+            v-model="queryParams.inquirySalesUserId"
             :remoteFunction="searchUser"
             searchKey="nickName"
             searchValue="userId"
@@ -42,9 +42,9 @@
             @keyup.enter.native="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="订单状态更新时间" prop="inquiryStateUpdateTime">
+        <el-form-item label="订单状态更新时间" prop="inquiryStatusUpdateTime">
           <el-date-picker
-            v-model="queryParams.inquiryStateUpdateTime"
+            v-model="queryParams.inquiryStatusUpdateTime"
             style="width: 240px"
             value-format="YYYY-MM-DD"
             type="daterange"
@@ -196,8 +196,8 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    purchaseUserId: null,
-    salesUserId: null,
+    inquiryPurchaseUserId: null,
+    inquirySalesUserId: null,
     brandId: null,
     purchaseSn: null,
     orderState: null,
@@ -280,6 +280,19 @@ function handleQuery() {
 function resetQuery() {
   daterangeOrderStateUpdateTime.value = []
   createTime.value = []
+  queryParams = {
+    pageNum: 1,
+    pageSize: 10,
+    inquiryPurchaseUserId: null,
+    inquirySalesUserId: null,
+    brandId: null,
+    purchaseSn: null,
+    orderState: null,
+    orderStateUpdateTime: null,
+    supplierId: null,
+    updateTime: null,
+    createTime: null,
+  }
   proxy.resetForm('queryRef')
   handleQuery()
 }
