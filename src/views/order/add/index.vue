@@ -10,22 +10,11 @@
             <el-button type="success" @click="openPayInfo">申请采购</el-button>
           </div>
         </el-row>
-        <el-form
-          ref="orderRef"
-          :model="form"
-          :rules="rules"
-          :validate-on-rule-change="false"
-          label-width="80px"
-          :disabled="false"
-          class="orderForm"
-        >
+        <el-form ref="orderRef" :model="form" :rules="rules" :validate-on-rule-change="false" label-width="80px"
+          :disabled="false" class="orderForm">
           <div class="mt20">
             <el-form-item label="品牌" prop="rtBrand" width="600px">
-              <brandSelect
-                v-model="form.rtBrand"
-                :extroProps="{ searchValue: 1, brandEnable: 1 }"
-                @change="getSupplierList"
-              ></brandSelect>
+              <brandSelect v-model="form.rtBrand" :extroProps="{ brandEnable: 1 }"></brandSelect>
             </el-form-item>
             <el-form-item label="订单描述" prop="orderDescription">
               <el-input :rows="3" type="textarea" v-model="form.orderDescription" placeholder="请输入订单描述" />
@@ -49,13 +38,7 @@
                   <el-form-item label="税率" prop="orderTaxRate">
                     <template #label>
                       税率
-                      <el-popover
-                        placement="top"
-                        :width="200"
-                        effect="dark"
-                        trigger="hover"
-                        content="未税为0或者含税的税点"
-                      >
+                      <el-popover placement="top" :width="200" effect="dark" trigger="hover" content="未税为0或者含税的税点">
                         <template #reference>
                           <el-icon style="display: inline-block; line-height: 36px; cursor: pointer">
                             <Warning />
@@ -72,13 +55,7 @@
                   <el-form-item label="杂费" prop="orderOtherFee">
                     <template #label>
                       杂费
-                      <el-popover
-                        placement="top"
-                        :width="200"
-                        effect="dark"
-                        trigger="hover"
-                        content="包装费、税费、附加费等合计"
-                      >
+                      <el-popover placement="top" :width="200" effect="dark" trigger="hover" content="包装费、税费、附加费等合计">
                         <template #reference>
                           <el-icon style="display: inline-block; line-height: 36px; cursor: pointer">
                             <Warning />
@@ -88,28 +65,19 @@
                       :
                     </template>
                     <span class="mr10">¥</span>
-                    <el-input-number
-                      :controls="false"
-                      :precision="4"
-                      v-model="form.orderOtherFee"
-                      style="width: 150px"
-                      @change="getTotalPrice"
-                    ></el-input-number>
+                    <el-input-number :controls="false" :precision="4" v-model="form.orderOtherFee" style="width: 150px"
+                      @change="getTotalPrice"></el-input-number>
                   </el-form-item>
                 </div>
               </el-card>
             </el-col>
           </el-row>
+
           <div class="mt20">
             <el-form-item label="产品明细" :disabled="true">
-              <el-table
-                :data="form.productList"
-                border
-                class="productList"
-                :header-cell-style="{ 'text-align': 'center' }"
-                :cell-style="{ 'text-align': 'center' }"
-                style="width: 100%"
-              >
+              <el-table :data="form.productList" border class="productList"
+                :header-cell-style="{ 'text-align': 'center' }" :cell-style="{ 'text-align': 'center' }"
+                style="width: 100%">
                 <!-- <el-table-column type="index" width="50" label="序号" fixed="left" /> -->
                 <el-table-column prop="productName" label="型号" fixed="left" width="150">
                   <template #default="scope">
@@ -125,47 +93,31 @@
                 </el-table-column>
                 <el-table-column prop="productQuantity" label="数量" width="160">
                   <template #default="scope">
-                    <el-input-number
-                      :precision="0"
-                      :controls="false"
-                      v-model="scope.row.productQuantity"
-                      :min="1"
-                    ></el-input-number>
+                    <el-input-number :precision="0" :controls="false" v-model="scope.row.productQuantity"
+                      :min="1"></el-input-number>
                   </template>
                 </el-table-column>
                 <el-table-column prop="supplierId" label="供应商" width="150">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.supplierId'">
-                      <simple-select-local
-                        v-model="scope.row.supplierId"
-                        :defaultList="form.supplierList"
-                        searchKey="supplierName"
-                        searchValue="supplierId"
-                      />
+                      <supplier-select v-model="scope.row.supplier" :extroProps="{ supplierEnable: 1 }" />
                     </el-form-item>
                   </template>
                 </el-table-column>
                 <el-table-column prop="productPurchasePrice" label="未税单价" width="100">
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.productPurchasePrice'" :rules="valueRule">
-                      <el-input-number
-                        :controls="false"
-                        :precision="4"
-                        v-if="inquiryStatus < 3 || scope.row.edit"
+                      <el-input-number :controls="false" :precision="4" v-if="inquiryStatus < 3 || scope.row.edit"
                         v-model="scope.row.productPurchasePrice"
-                        @change="getPurchaseTotalPrice(scope.row)"
-                      ></el-input-number>
+                        @change="getPurchaseTotalPrice(scope.row)"></el-input-number>
                       <span v-else>{{ scope.row.productPurchasePrice }}</span>
                     </el-form-item>
                   </template>
                 </el-table-column>
                 <el-table-column prop="productPurchaseMethod" label="采购方式" width="100">
                   <template #default="scope">
-                    <el-form-item
-                      v-if="inquiryStatus < 3 || scope.row.edit"
-                      :prop="'productList.' + scope.$index + '.productPurchaseMethod'"
-                      :rules="valueRule"
-                    >
+                    <el-form-item v-if="inquiryStatus < 3 || scope.row.edit"
+                      :prop="'productList.' + scope.$index + '.productPurchaseMethod'" :rules="valueRule">
                       <el-input v-model="scope.row.productPurchaseMethod"></el-input>
                     </el-form-item>
                     <span v-else>{{ scope.row.productPurchaseMethod }}</span>
@@ -174,12 +126,8 @@
                 <el-table-column prop="productReferencePrice" label="建议售价" width="100">
                   <template #default="scope">
                     <el-form-item>
-                      <el-input-number
-                        :controls="false"
-                        :precision="4"
-                        v-if="inquiryStatus < 3 || scope.row.edit"
-                        v-model="scope.row.productReferencePrice"
-                      ></el-input-number>
+                      <el-input-number :controls="false" :precision="4" v-if="inquiryStatus < 3 || scope.row.edit"
+                        v-model="scope.row.productReferencePrice"></el-input-number>
                       <span v-else>{{ scope.row.productReferencePrice }}</span>
                     </el-form-item>
                   </template>
@@ -191,27 +139,20 @@
                 </el-table-column>
                 <el-table-column prop="productDeliveryTime" label="预计货期" width="100">
                   <template #default="scope">
-                    <el-input
-                      v-if="inquiryStatus < 3 || scope.row.edit"
-                      v-model="scope.row.productDeliveryTime"
-                    ></el-input>
+                    <el-input v-if="inquiryStatus < 3 || scope.row.edit"
+                      v-model="scope.row.productDeliveryTime"></el-input>
                     <span v-else>{{ scope.row.productDeliveryTime }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column prop="purchaseFileList" label="采购附件" width="150">
                   <template #default="scope">
-                    <el-upload
-                      v-if="inquiryStatus < 3 || scope.row.edit"
-                      v-model:file-list="scope.row.purchaseFileList"
-                      :action="base + '/system/info/add'"
-                      :limit="3"
-                      :headers="headers"
-                      accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
-                      :on-success="handleUploadSuccess"
-                      :on-preview="handleFilePreview"
-                      :before-remove="handleFileRemove"
-                    >
-                      <el-icon><Plus /></el-icon>
+                    <el-upload v-if="inquiryStatus < 3 || scope.row.edit" v-model:file-list="scope.row.purchaseFileList"
+                      :action="base + '/system/info/add'" :limit="3" :headers="headers"
+                      accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf" :on-success="handleUploadSuccess"
+                      :on-preview="handleFilePreview" :before-remove="handleFileRemove">
+                      <el-icon>
+                        <Plus />
+                      </el-icon>
                     </el-upload>
                     <div v-else>
                       <div v-for="item in scope.row.purchaseFileList" class="link-type text-overflow fs12">
@@ -220,21 +161,12 @@
                     </div>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  label="操作"
-                  fixed="right"
-                  align="center"
-                  class-name="small-padding fixed-width"
-                  width="80"
-                >
+                <el-table-column label="操作" fixed="right" align="center" class-name="small-padding fixed-width"
+                  width="80">
                   <template #default="scope">
                     <el-tooltip content="删除" placement="top" v-if="scope.row.roleId !== 1">
-                      <el-button
-                        link
-                        type="primary"
-                        icon="Delete"
-                        @click="handleDeleteOrderItem(scope.$index)"
-                      ></el-button>
+                      <el-button link type="primary" icon="Delete"
+                        @click="handleDeleteOrderItem(scope.$index)"></el-button>
                     </el-tooltip>
                   </template>
                 </el-table-column>
@@ -259,6 +191,7 @@ import { addOrder } from '@/api/order'
 import { nextTick, onBeforeMount, onMounted, reactive } from 'vue'
 import omsMessage from '@/views/componments/omsMessage'
 import brandSelect from '@/views/componments/brandSelect'
+import supplierSelect from '@/views/componments/supplierSelect'
 import { deepClone } from '@/utils/index'
 import SimpleSelectLocal from '@/components/SimpleSelectLocal'
 import { getToken } from '@/utils/auth'
@@ -393,8 +326,19 @@ function getSupplierList(val) {
     form.value.supplierList = res
   })
 }
+function uniqueFunc(arr, uniId) {
+  const res = new Map();
+  return arr.filter((item) => !res.has(item[uniId]) && res.set(item[uniId], 1));
+}
+
 // 申请付款
 function openPayInfo() {
+  let supplierList = []
+  for (let i = 0; i < form.value.productList.length; i++) {
+    const item = form.value.productList[i];
+    supplierList.push(item.supplier)
+  }
+  form.value.supplierList = uniqueFunc(supplierList, 'supplierId')
   proxy.$refs.payInfoDialogRef.show(form.value.piSn)
 }
 </script>
@@ -407,12 +351,14 @@ function openPayInfo() {
   .btn-box {
     padding-top: 0;
   }
+
   .productList {
     .cell {
       padding: 0 4px 12px;
       overflow: visible;
     }
   }
+
   .totalPrice {
     font-size: 16px;
     line-height: 32px;
@@ -421,10 +367,12 @@ function openPayInfo() {
     .blod {
       font-weight: bold;
     }
+
     .primary {
       color: var(--el-color-primary);
     }
   }
+
   .table-clumn-number .cell {
     padding: 0;
 
@@ -438,9 +386,11 @@ function openPayInfo() {
     .brand-desc {
       line-height: 40px;
     }
+
     .el-textarea {
       max-width: 420px;
     }
+
     .el-input {
       max-width: 420px;
     }
@@ -451,10 +401,12 @@ function openPayInfo() {
     font-size: 15px;
     line-height: 24px;
   }
+
   .purchase-order-main {
     box-sizing: border-box;
     background: #fff;
   }
+
   .purchase-order {
     position: relative;
     padding: 20px;
@@ -475,6 +427,7 @@ function openPayInfo() {
     padding: 0;
     margin-left: 10px;
   }
+
   .total-price-left,
   .total-price-right {
     .total-price-content {
@@ -483,6 +436,7 @@ function openPayInfo() {
       // background: rgba(0, 0, 0, 0.03);
       // padding: 5px 20px 10px;
       margin-top: 20px;
+
       // border-radius: 15px;
       h3 {
         line-height: 1;

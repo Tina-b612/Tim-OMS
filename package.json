@@ -1,7 +1,7 @@
 {
   "name": "tim-oms",
   "version": "0.0.1",
-  "description": "若依管理系统",
+  "description": "锐泰后台管理系统",
   "author": "若依",
   "license": "MIT",
   "scripts": {
