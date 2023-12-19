@@ -33,14 +33,14 @@
             <el-button @click="handleEditCancle">取消</el-button>
           </div>
           <!-- 默认状态按钮 -->
-          <div class="right" v-show="!pageEdit">
+          <div class="right" v-show="form.ifEditable && !pageEdit">
             <el-button type="success" v-show="orderStatus === 1" @click="pageEdit = true">编辑</el-button>
             <el-button type="success" @click="submitForm(0)" v-if="!orderStatus">保存为草稿</el-button>
             <!-- <el-button type="success" @click="submitForm(0)" v-if="!orderStatus">申请采购</el-button> -->
             <el-button type="success" @click="openPayInfo" v-if="[0, 1].includes(orderStatus)">申请付款</el-button>
-            <el-button type="success" @click="submitForm(5)" v-if="[4].includes(orderStatus)">已签收</el-button>
-            <el-button type="success" @click="handleSignFor(6)" v-if="[4].includes(orderStatus)">异常签收</el-button>
-            <el-button type="danger" @click="submitForm(7)" v-if="![7].includes(orderStatus)">取消</el-button>
+            <el-button type="success" @click="handleSignFor(5)" v-if="[4].includes(orderStatus)">确认收货</el-button>
+            <el-button type="success" @click="handleSignFor(6)" v-if="[4].includes(orderStatus)">异常收货</el-button>
+            <el-button type="danger" @click="submitForm(7)" v-if="![5, 6, 7].includes(orderStatus)">取消</el-button>
           </div>
         </el-row>
         <!-- 表单 -->
@@ -479,8 +479,8 @@
                   v-if="[0, 1].includes(orderStatus)"
                 >
                   <template #default="scope">
-                    <el-tooltip
-                      content="历史成交价"
+                    <!-- <el-tooltip
+                      content="历史报价"
                       placement="top"
                       v-if="
                         scope.row.productId &&
@@ -489,7 +489,7 @@
                       "
                     >
                       <el-button link type="primary" icon="Clock"></el-button>
-                    </el-tooltip>
+                    </el-tooltip> -->
                     <el-tooltip content="编辑" placement="top" v-if="scope.row.productId && ![0].includes(orderStatus)">
                       <el-button
                         link
@@ -519,6 +519,13 @@
                   </template>
                 </el-table-column>
               </el-table>
+            </el-form-item>
+            <el-form-item label="收货凭证" v-if="form.arrivalFileList">
+              <div>
+                <a v-for="item in form.arrivalFileList" :href="item.url" target="_blank">
+                  <el-button type="primary" link>{{ item.name }}</el-button>
+                </a>
+              </div>
             </el-form-item>
           </div>
         </el-form>
@@ -744,6 +751,9 @@ function submitForm(orderStatus, payment) {
   if (orderStatus === 6) {
     form.value.orderReceiptedException = payment.orderReceiptedException
   }
+  if (orderStatus === 5) {
+    form.value.arrivalFileList = payment.arrivalFileList
+  }
   proxy.$refs['orderRef'].validate((valid) => {
     if (valid) {
       if (orderStatus === 2) {
@@ -758,9 +768,9 @@ function submitForm(orderStatus, payment) {
   })
 }
 // 异常签收弹窗
-function handleSignFor() {
+function handleSignFor(orderStatus) {
   // console.log('异常签收')
-  proxy.$refs.signForModelRef.show()
+  proxy.$refs.signForModelRef.show(orderStatus)
 }
 // 保存编辑
 function handleSave() {

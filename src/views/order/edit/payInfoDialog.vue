@@ -1,5 +1,5 @@
 <template>
-  <el-dialog title="付款申请表" v-model="open" width="1200px" v-if="open" append-to-body>
+  <el-dialog title="付款申请表" v-model="open" width="1300px" v-if="open" append-to-body>
     <el-form ref="formRef" :model="form" :rules="rules">
       <el-form-item label="用途（PI）" prop="piSn">
         <el-input v-model="form.piSn" placeholder="请输入PI号" style="width: 300px" />
@@ -18,9 +18,9 @@
             供应商
           </template>
           <template #default="scope">
-            <el-form-item :prop="'paymentList.' + scope.$index + '.supplierId'" :rules="valueRule">
+            <el-form-item :prop="'paymentList.' + scope.$index + '.supplier'" :rules="valueRule">
               <el-select
-                v-model="scope.row.supplierId"
+                v-model="scope.row.supplier"
                 filterable
                 default-first-option
                 clearable
@@ -33,7 +33,8 @@
                   style="width: 280px"
                   v-for="item in ordersupplierList"
                   :label="item.supplierName"
-                  :value="item.supplierId"
+                  :key="item.supplierId"
+                  :value="item"
                 >
                   <span style="width: 100px">{{ item.supplierName }}</span>
                 </el-option>
@@ -95,7 +96,7 @@
             </el-form-item>
           </template>
         </el-table-column>
-        <el-table-column prop="paymentContractFileList" label="上传盖章合同">
+        <el-table-column prop="paymentContractFileList" label="上传盖章合同" width="230">
           <template #header>
             <span class="danger">*</span>
             上传盖章合同
@@ -172,11 +173,13 @@ function show(piSn) {
 function handleChangeSelect(index) {
   console.log(index)
   let item = form.value.paymentList[index]
-  getSupplier(item.supplierId).then((response) => {
-    form.value.paymentList[index].paymentBankName = response.data.supplierBankName || ''
-    form.value.paymentList[index].supplierName = response.data.supplierName || ''
-    form.value.paymentList[index].paymentPayeeAccount = response.data.supplierPayeeAccount || ''
-  })
+  if (item.supplierId) {
+    getSupplier(item.supplierId).then((response) => {
+      form.value.paymentList[index].paymentBankName = response.data.supplierBankName || ''
+      form.value.paymentList[index].supplierName = response.data.supplierName || ''
+      form.value.paymentList[index].paymentPayeeAccount = response.data.supplierPayeeAccount || ''
+    })
+  }
 }
 
 // 取消按钮

@@ -191,9 +191,8 @@ import { addOrder } from '@/api/order'
 import { nextTick, onBeforeMount, onMounted, reactive } from 'vue'
 import omsMessage from '@/views/componments/omsMessage'
 import brandSelect from '@/views/componments/brandSelect'
-import supplierSelect from '@/views/componments/supplierSelect'
 import { deepClone } from '@/utils/index'
-import SimpleSelectLocal from '@/components/SimpleSelectLocal'
+import supplierSelect from '@/views/componments/supplierSelect'
 import { getToken } from '@/utils/auth'
 import { getFloat } from '@/utils/index'
 import { listBrandRelatedSupplier } from '@/api/supplier'
@@ -274,7 +273,7 @@ function submitForm(orderStatus, payment) {
     if (valid) {
       for (let i = 0; i < form.value.productList.length; i++) {
         const item = form.value.productList[i]
-        if (!item.supplierId) {
+        if (!item.supplier) {
           return proxy.$modal.msgError('请选择型号为：' + item.productName + '的供应商')
         }
       }
@@ -333,13 +332,25 @@ function uniqueFunc(arr, uniId) {
 
 // 申请付款
 function openPayInfo() {
-  let supplierList = []
-  for (let i = 0; i < form.value.productList.length; i++) {
-    const item = form.value.productList[i];
-    supplierList.push(item.supplier)
-  }
-  form.value.supplierList = uniqueFunc(supplierList, 'supplierId')
-  proxy.$refs.payInfoDialogRef.show(form.value.piSn)
+  // let supplierList = []
+  // for (let i = 0; i < form.value.productList.length; i++) {
+  //   const item = form.value.productList[i];
+  //   supplierList.push(item.supplier)
+  // }
+  // form.value.supplierList = uniqueFunc(supplierList, 'supplierId')
+  // proxy.$refs.payInfoDialogRef.show(form.value.piSn)
+
+  proxy.$refs['orderRef'].validate((valid) => {
+    if (valid) {
+      let list = []
+      for (let i = 0; i < form.value.productList.length; i++) {
+        const item = form.value.productList[i]
+        list.push(item.supplier)
+      }
+      form.value.supplierList = uniqueFunc(list, 'supplierId')
+      proxy.$refs.payInfoDialogRef.show(form.value.piSn)
+    }
+  })
 }
 </script>
 

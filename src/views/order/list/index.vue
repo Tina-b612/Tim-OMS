@@ -52,7 +52,7 @@
         </el-form-item>
         <el-form-item label="订单状态更新时间" prop="orderStatusUpdateTime">
           <el-date-picker
-            v-model="queryParams.inquiryStateUpdateTime"
+            v-model="queryParams.orderStatusUpdateTime"
             style="width: 240px"
             value-format="YYYY-MM-DD"
             type="daterange"
