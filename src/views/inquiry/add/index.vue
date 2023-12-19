@@ -21,14 +21,9 @@
           </div>
           <div class="mt20">
             <el-form-item lab>
-              <el-table
-                :data="form.productList"
-                border
-                class="productList"
-                :header-cell-style="{ 'text-align': 'center' }"
-                :cell-style="{ 'text-align': 'center' }"
-                style="width: 100%"
-              >
+              <el-table :data="form.productList" border class="productList"
+                :header-cell-style="{ 'text-align': 'center' }" :cell-style="{ 'text-align': 'center' }"
+                style="width: 100%">
                 <!-- <el-table-column type="index" width="50" label="序号" /> -->
                 <el-table-column prop="productName" label="型号*">
                   <template #default="scope">
@@ -44,24 +39,15 @@
                 </el-table-column>
                 <el-table-column prop="productQuantity" label="数量">
                   <template #default="scope">
-                    <el-input-number
-                      :controls="false"
-                      :precision="0"
-                      v-model="scope.row.productQuantity"
-                      :min="1"
-                    ></el-input-number>
+                    <el-input-number :controls="false" :precision="0" v-model="scope.row.productQuantity"
+                      :min="1"></el-input-number>
                   </template>
                 </el-table-column>
                 <el-table-column prop="salesFileList" label="销售附件">
                   <template #default="scope">
-                    <el-upload
-                      v-model:file-list="scope.row.salesFileList"
-                      :action="base + '/system/info/add'"
-                      :limit="3"
-                      :headers="headers"
-                      accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
-                      :on-success="handleUploadSuccess"
-                    >
+                    <el-upload v-model:file-list="scope.row.salesFileList" :action="base + '/system/info/add'" :limit="3"
+                      :headers="headers" accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
+                      :on-success="handleUploadSuccess" :on-preview="handleFilePreview">
                       <el-button type="primary">上传附件</el-button>
                     </el-upload>
                   </template>
@@ -69,12 +55,8 @@
                 <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="80">
                   <template #default="scope">
                     <el-tooltip content="删除" placement="top" v-if="scope.row.roleId !== 1">
-                      <el-button
-                        link
-                        type="primary"
-                        icon="Delete"
-                        @click="handleDeleteOrderItem(scope.row, scope.$index)"
-                      ></el-button>
+                      <el-button link type="primary" icon="Delete"
+                        @click="handleDeleteOrderItem(scope.row, scope.$index)"></el-button>
                     </el-tooltip>
                   </template>
                 </el-table-column>
@@ -171,6 +153,10 @@ function handleUploadSuccess(res) {
     proxy.$modal.msgError(res.msg)
   }
 }
+// 预览文件
+function handleFilePreview(uploadFile) {
+  window.open(uploadFile.url)
+}
 </script>
 
 <style lang="scss">
@@ -181,22 +167,26 @@ function handleUploadSuccess(res) {
   .btn-box {
     padding-top: 0;
   }
+
   .productList {
     .cell {
       padding: 0 4px 2px;
       overflow: visible;
     }
   }
+
   .totalPrice {
-    display: flex;
-    justify-content: end;
+    // display: flex;
+    // justify-content: end;
     font-size: 16px;
     color: var(--el-color-warning);
     padding-right: 20px;
+
     span {
       font-size: 22px;
     }
   }
+
   .table-clumn-number .cell {
     padding: 0;
 
@@ -234,10 +224,12 @@ function handleUploadSuccess(res) {
     font-size: 15px;
     line-height: 24px;
   }
+
   .purchase-order-main {
     box-sizing: border-box;
     background: #fff;
   }
+
   .purchase-order {
     position: relative;
     padding: 20px;

@@ -1,29 +1,15 @@
 <template>
-  <el-select
-    v-model="selection"
-    filterable
-    default-first-option
-    clearable
-    remote
-    :placeholder="placeholder"
-    remote-show-suffix
-    :remote-method="handleSearch"
-    @change="selectChange"
-    :loading="selectLoading"
-  >
-    <el-option
-      style="width: 280px"
-      v-for="item in searchList"
-      :key="item[props.searchValue]"
-      :label="item[props.searchKey]"
-      :value="item[props.searchValue]"
-    >
+  <el-select v-model="selection" filterable default-first-option clearable remote :placeholder="placeholder"
+    remote-show-suffix :remote-method="handleSearch" @change="selectChange" :loading="selectLoading">
+    <el-option style="width: 280px" v-for="item in searchList" :key="item[props.searchValue]"
+      :label="item[props.searchKey]" :value="item[props.searchValue]">
       <span style="width: 100px">{{ item[[props.searchKey]] }}</span>
     </el-option>
   </el-select>
 </template>
 
 <script setup>
+import { watch } from 'vue'
 const emit = defineEmits()
 const props = defineProps({
   modelValue: [String, Number],
@@ -40,6 +26,14 @@ const props = defineProps({
 const selectLoading = ref(false)
 const searchList = ref([])
 const selection = ref(null)
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    selection.value = val
+  },
+  { deep: true, immediate: true }
+)
 
 function handleSearch(seachValue) {
   if (seachValue) {
