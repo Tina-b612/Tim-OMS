@@ -52,7 +52,7 @@
         </el-form-item>
         <el-form-item label="订单状态更新时间" prop="orderStatusUpdateTime">
           <el-date-picker
-            v-model="queryParams.orderStatusUpdateTime"
+            v-model="daterangeOrderStateUpdateTime"
             style="width: 240px"
             value-format="YYYY-MM-DD"
             type="daterange"
@@ -63,7 +63,7 @@
         </el-form-item>
         <el-form-item label="订单创建时间" prop="orderCreateTime">
           <el-date-picker
-            v-model="queryParams.inquiryCreateTime"
+            v-model="createTime"
             style="width: 240px"
             value-format="YYYY-MM-DD"
             type="daterange"
@@ -270,12 +270,8 @@ function getStateNumber() {
 /** 查询订单功能列表 */
 function getList() {
   loading.value = true
-  let pramers = proxy.addDateRange(
-    queryParams.value,
-    daterangeOrderStateUpdateTime.value,
-    'daterangeOrderStateUpdateTime'
-  )
-  listOrder(proxy.addDateRange(pramers, createTime.value, 'CreateTime'))
+  let pramers = proxy.addDateRange(queryParams.value, daterangeOrderStateUpdateTime.value, 'OrderStatusUpdateTime')
+  listOrder(proxy.addDateRange(pramers, createTime.value, 'OrderCreateTime'))
     .then((response) => {
       orderList.value = response.rows
       total.value = response.total

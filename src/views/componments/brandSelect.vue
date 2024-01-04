@@ -28,7 +28,7 @@
       <img :src="item.brandLogo || defaultLogo" style="width: 22px; height: 22px" />
       <span style="width: 100px">{{ item.brandName }}</span>
       <span style="width: 50px; color: var(--el-text-color-secondary); font-size: 12px; margin-left: 4px">
-        {{ item.country || '未知国家' }}
+        {{ item.brandCountry || '未知国家' }}
       </span>
     </el-option>
   </el-select>
