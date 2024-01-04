@@ -520,12 +520,13 @@
                 </el-table-column>
               </el-table>
             </el-form-item>
-            <el-form-item label="收货凭证" v-if="form.arrivalFileList">
-              <div>
-                <a v-for="item in form.arrivalFileList" :href="item.url" target="_blank">
-                  <el-button type="primary" link>{{ item.name }}</el-button>
-                </a>
-              </div>
+            <el-form-item label="收货凭证" v-if="form.arrivalFileList" class="arrivalFileList">
+              <a v-for="item in form.arrivalFileList" :href="item.url" target="_blank">
+                <el-button type="primary" link>{{ item.name }}</el-button>
+              </a>
+            </el-form-item>
+            <el-form-item label="异常原因" v-if="form.orderReceiptedException">
+              {{ form.orderReceiptedException }}
             </el-form-item>
           </div>
         </el-form>
@@ -910,6 +911,14 @@ function handleCanclePay(row) {
     position: absolute;
     top: 0;
     right: 0;
+  }
+  .arrivalFileList {
+    .el-form-item__content {
+      display: block;
+      a {
+        display: block;
+      }
+    }
   }
   .orderForm {
     .brand-desc {
