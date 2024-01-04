@@ -203,7 +203,13 @@
                   <el-table-column label="金额" prop="paymentAmount" />
                   <el-table-column label="采购合同" prop="paymentContractFileList">
                     <template #default="scope">
-                      <div v-for="item in scope.row.paymentContractFileList">{{ item.fileName }}</div>
+                      <!-- <a v-for="item in scope.row.paymentContractFileList" :href="item.url" target="_blank">
+                        {{ item.fileName }}
+                      </a> -->
+                      <el-button v-for="item in scope.row.paymentContractFileList" link type="primary">
+                        <a :href="item.url" target="_blank">{{ item.fileName }}</a>
+                      </el-button>
+                      <!-- <div v-for="item in scope.row.paymentContractFileList">{{ item.fileName }}</div> -->
                     </template>
                   </el-table-column>
                   <el-table-column label="付款状态" prop="paymentContractFileList">

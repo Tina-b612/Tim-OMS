@@ -66,3 +66,12 @@ export function quotedHistory(query) {
     method: 'get',
   })
 }
+
+// 修改询盘
+export function editInquiryPurchaseUser(data) {
+  return request({
+    url: '/inquiry/editInquiryPurchaseUser',
+    method: 'put',
+    data: data,
+  })
+}

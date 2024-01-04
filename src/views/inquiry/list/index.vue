@@ -8,27 +8,61 @@
           <el-switch v-model:modelValue="queryParams.ifSelf" @change="handleQuery" />
         </el-form-item>
         <el-form-item label="采购负责人" prop="inquiryPurchaseUserId">
-          <simple-select v-model="queryParams.inquiryPurchaseUserId" :remoteFunction="searchUser" searchKey="nickName"
-            searchValue="userId" placeholder="请输入采购负责人名称" />
+          <simple-select
+            v-model="queryParams.inquiryPurchaseUserId"
+            :remoteFunction="searchUser"
+            searchKey="nickName"
+            searchValue="userId"
+            placeholder="请输入采购负责人名称"
+          />
         </el-form-item>
         <el-form-item label="销售负责人" prop="inquirySalesUserId">
-          <simple-select v-model="queryParams.inquirySalesUserId" :remoteFunction="searchUser" searchKey="nickName"
-            searchValue="userId" placeholder="请输入销售负责人名称" />
+          <simple-select
+            v-model="queryParams.inquirySalesUserId"
+            :remoteFunction="searchUser"
+            searchKey="nickName"
+            searchValue="userId"
+            placeholder="请输入销售负责人名称"
+          />
         </el-form-item>
         <el-form-item label="品牌" prop="brandId">
-          <simple-select v-model="queryParams.brandId" :remoteFunction="searchBrand" searchKey="brandName"
-            searchValue="brandId" placeholder="请输入品牌名称" />
+          <simple-select
+            v-model="queryParams.brandId"
+            :remoteFunction="searchBrand"
+            searchKey="brandName"
+            searchValue="brandId"
+            placeholder="请输入品牌名称"
+          />
         </el-form-item>
         <el-form-item label="询盘单号" prop="inquirySn">
-          <el-input v-model="queryParams.inquirySn" placeholder="请输入询盘单号" clearable @keyup.enter.native="handleQuery" />
+          <el-input
+            v-model="queryParams.inquirySn"
+            placeholder="请输入询盘单号"
+            clearable
+            @keyup.enter.native="handleQuery"
+          />
         </el-form-item>
         <el-form-item label="订单状态更新时间" prop="inquiryStatusUpdateTime">
-          <el-date-picker v-model="queryParams.inquiryStatusUpdateTime" style="width: 240px" value-format="YYYY-MM-DD"
-            type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"></el-date-picker>
+          <el-date-picker
+            v-model="queryParams.inquiryStatusUpdateTime"
+            style="width: 240px"
+            value-format="YYYY-MM-DD"
+            type="daterange"
+            range-separator="-"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+          ></el-date-picker>
         </el-form-item>
         <el-form-item label="订单创建时间" prop="inquiryCreateTime">
-          <el-date-picker v-model="queryParams.inquiryCreateTime" style="width: 240px" value-format="YYYY-MM-DD"
-            type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"></el-date-picker>
+          <el-date-picker
+            v-model="queryParams.inquiryCreateTime"
+            style="width: 240px"
+            value-format="YYYY-MM-DD"
+            type="daterange"
+            range-separator="-"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+          ></el-date-picker>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
@@ -49,17 +83,38 @@
         <!-- 列表分类 -->
         <el-tabs v-model="activeName" type="card" class="demo-tabs" @tab-click="handleTabClick">
           <el-tab-pane label="全部" name=""></el-tab-pane>
-          <el-tab-pane v-for="item in stateNumber" :label="item.inquiryStatusCount
-            ? inquiry_status_map[item.inquiryStatus].label + `（${item.inquiryStatusCount}）`
-            : ''
-            " :name="inquiry_status_map[item.inquiryStatus].value"></el-tab-pane>
+          <el-tab-pane
+            v-for="item in stateNumber"
+            :label="
+              item.inquiryStatusCount
+                ? inquiry_status_map[item.inquiryStatus].label + `（${item.inquiryStatusCount}）`
+                : ''
+            "
+            :name="inquiry_status_map[item.inquiryStatus].value"
+          ></el-tab-pane>
         </el-tabs>
         <!-- 列表 -->
         <el-table v-loading="loading" :data="orderList" @row-click="handleUpdate">
           <!-- <el-table-column type="index" label="序号" width="60" /> -->
           <el-table-column label="询盘单号" align="center" prop="inquirySn" />
           <el-table-column label="品牌" align="center" prop="brandName" />
-          <el-table-column label="采购负责人" align="center" prop="purchaseUserName" />
+          <el-table-column label="采购负责人" align="center" prop="purchaseUserName">
+            <template #default="scope">
+              <span v-if="scope.row.purchaseUserName">
+                {{ scope.row.purchaseUserName }}
+              </span>
+              <el-button
+                v-else
+                v-hasRole="['purchase', 'purchaseAdmin']"
+                type="primary"
+                size="small"
+                @click="getInquiryToMe(scope.row)"
+              >
+                认领询盘
+              </el-button>
+            </template>
+          </el-table-column>
+
           <el-table-column label="销售负责人" align="center" prop="salesUserName" />
           <el-table-column label="未税总价" align="center" prop="inquiryTotalPriceNoTax" />
           <el-table-column label="订单状态" align="center" prop="inquiryStatus">
@@ -84,8 +139,13 @@
           </el-table-column> -->
         </el-table>
 
-        <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
-          v-model:limit="queryParams.pageSize" @pagination="getList" />
+        <pagination
+          v-show="total > 0"
+          :total="total"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          @pagination="getList"
+        />
       </div>
     </div>
 
@@ -101,7 +161,7 @@
 
 <script setup name="List">
 import { searchUser, searchBrand } from '@/api/brand'
-import { listInquiry, getInquiryCount, getInquiry, delInquiry, addInquiry, updateInquiry } from '@/api/inquiry'
+import { listInquiry, getInquiryCount, editInquiryPurchaseUser } from '@/api/inquiry'
 import { reactive } from 'vue'
 import OrderEditDialog from './orderEditDialog'
 import omsMessage from '@/views/componments/omsMessage'
@@ -245,8 +305,11 @@ function handleAdd() {
   proxy.$router.push({ path: 'inquiry/add' })
 }
 /** 修改按钮操作 */
-function handleUpdate(row) {
-  proxy.$router.push({ path: 'inquiry/edit', query: { id: row.inquiryId } })
+function handleUpdate(row, column) {
+  console.log(column)
+  if (column.property !== 'purchaseUserName') {
+    proxy.$router.push({ path: 'inquiry/edit', query: { id: row.inquiryId } })
+  }
 }
 
 // onBeforeMount(() => {
@@ -260,6 +323,13 @@ const handleTabClick = (tab) => {
   // getList()
 
   proxy.$router.push({ path: 'inquiry', query: { status: tab.paneName } })
+}
+
+const getInquiryToMe = (inquiry) => {
+  editInquiryPurchaseUser({ inquiryId: inquiry.inquiryId }).then((response) => {
+    proxy.$modal.msgSuccess('认领成功')
+    getList()
+  })
 }
 
 watch(

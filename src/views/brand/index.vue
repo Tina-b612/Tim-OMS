@@ -60,7 +60,7 @@
       <el-table-column label="品牌名称" width="150" align="center" prop="brandName" />
       <el-table-column label="品牌logo" width="120" align="center" prop="logo">
         <template #default="scope">
-          <img class="loge-image" :src="base + scope.row.brandLogo || defaultLogo" alt="" />
+          <img class="loge-image" :src="scope.row.brandLogo || defaultLogo" alt="" />
         </template>
       </el-table-column>
       <el-table-column label="国家" align="center" prop="brandCountry" />
