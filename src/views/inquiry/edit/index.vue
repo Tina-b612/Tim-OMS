@@ -99,16 +99,17 @@
               </el-form-item>
             </div>
             <!-- 合计 -->
-            <el-row :gutter="20" v-if="inquiryStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])">
+            <el-row :gutter="20"
+              v-if="inquiryStatus >= 3 || (proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin']) && inquiryStatus > 0)">
               <el-col :span="12" class="total-price-left">
                 <el-card class="total-price-content" header="本单合计">
-                  <div class="flex-center-left ml20 totalPrice" v-if="![0].includes(inquiryStatus)">
+                  <div class="flex-center-left ml20 totalPrice">
                     <div>未税总价：¥ {{ form.inquiryTotalPriceNoTax || 0 }} </div>
                     <div class="ml20">税金：¥ {{ form.inquiryTax || 0 }}</div>
                     <div class="ml20">总价：¥ {{ form.inquiryTotalPrice || 0 }}</div>
                   </div>
                   <div class="flex-center-left mt10">
-                    <el-form-item label="税率" prop="inquiryTaxRate" v-if="![0].includes(inquiryStatus)">
+                    <el-form-item label="税率" prop="inquiryTaxRate">
                       <template #label>
                         税率
                         <el-popover placement="top" :width="200" effect="dark" trigger="hover" content="未税为0或者含税的税点">
@@ -128,7 +129,7 @@
                       </el-input>
                       <span v-else>{{ form.inquiryTaxRate || 0 }} %</span>
                     </el-form-item>
-                    <el-form-item label="杂费" prop="inquiryOtherFee" v-if="![0].includes(inquiryStatus)">
+                    <el-form-item label="杂费" prop="inquiryOtherFee">
                       <template #label>
                         杂费
                         <el-popover placement="top" :width="200" effect="dark" trigger="hover" content="包装费、税费、附加费等合计">
@@ -156,7 +157,7 @@
                 v-if="proxy.$auth.hasRoleOr(['sales', 'salesAdmin']) || [3].includes(inquiryId)">
                 <el-card class="total-price-content" header="勾选产品合计">
                   <!-- <h3 class="ml20">勾选产品合计</h3> -->
-                  <div class="ml20 totalPrice" v-if="![0].includes(inquiryStatus)">
+                  <div class="ml20 totalPrice">
                     <el-row :gutter="20">
                       <el-col :span="12">
                         <div>已选产品件数：¥ {{ form.inquirySelectedCount || 0 }}</div>
@@ -241,7 +242,8 @@
                   </el-table-column>
                   <el-table-column prop="supplier" label="供应商" width="150" v-hasRole="['purchase', 'purchaseAdmin']">
                     <template #default="scope">
-                      <el-form-item :prop="'productList.' + scope.$index + '.supplier'" :rules="valueRule">
+                      <el-form-item :prop="'productList.' + scope.$index + '.supplier'"
+                        :rules="inquiryStatus > 0 ? valueRule : null">
                         <!-- <simple-select
                           v-if="inquiryStatus < 3 || scope.row.edit"
                           v-model="scope.row.supplier"
@@ -261,7 +263,8 @@
                     v-if="inquiryStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])" width="100">
                     <template #default="scope">
                       <el-form-item v-if="inquiryStatus < 3 || scope.row.edit"
-                        :prop="'productList.' + scope.$index + '.productPurchaseMethod'" :rules="valueRule">
+                        :prop="'productList.' + scope.$index + '.productPurchaseMethod'"
+                        :rules="inquiryStatus > 0 ? valueRule : null">
                         <el-input v-model="scope.row.productPurchaseMethod"></el-input>
                       </el-form-item>
                       <span v-else>{{ scope.row.productPurchaseMethod }}</span>
@@ -270,7 +273,8 @@
                   <el-table-column prop="productPurchasePrice" label="未税单价"
                     v-if="inquiryStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])" width="100">
                     <template #default="scope">
-                      <el-form-item :prop="'productList.' + scope.$index + '.productPurchasePrice'" :rules="valueRule">
+                      <el-form-item :prop="'productList.' + scope.$index + '.productPurchasePrice'"
+                        :rules="inquiryStatus > 0 ? valueRule : null">
                         <el-input-number v-if="inquiryStatus < 3 || scope.row.edit"
                           v-model="scope.row.productPurchasePrice" :controls="false" :precision="4"
                           @change="getPurchaseTotalPrice(scope.row)"></el-input-number>
@@ -766,6 +770,10 @@ function handleUsePrice(price, product) {
 
       .el-table td.el-table__cell div {
         overflow: visible;
+      }
+
+      .el-input-number {
+        width: auto;
       }
 
       .el-form-item--default .el-form-item__content>span {
