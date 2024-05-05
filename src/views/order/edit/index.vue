@@ -6,9 +6,9 @@
         <div class="order-detail-header">
           <div class="desc">
             <dict-tag style="display: inline" :options="order_status" :value="form.orderStatus" />
-            <span>询盘单号: {{ form.inquirySn || '-' }}</span>
+            <!-- <span>询盘单号: {{ form.inquirySn || '-' }}</span> -->
             <span>采购单号: {{ form.orderSn || '-' }}</span>
-            <span>销售负责人: {{ form.salesUserName || '-' }}</span>
+            <!-- <span>销售负责人: {{ form.salesUserName || '-' }}</span> -->
             <span>采购负责人: {{ form.purchaseUserName || '未分配' }}</span>
             <span v-if="orderStatus <= 5">
               当前状态等待时长:
@@ -217,7 +217,7 @@
                       <dict-tag style="display: inline" :options="payment_status" :value="scope.row.paymentStatus" />
                     </template>
                   </el-table-column>
-                  <el-table-column label="付款证明" prop="paymentProveFileList" v-if="proxy.$auth.hasRole('manager')">
+                  <el-table-column label="付款证明" prop="paymentProveFileList">
                     <template #default="scope">
                       <el-upload
                         v-if="!scope.row.paymentStatus"
@@ -323,7 +323,7 @@
                       placeholder="请输入产品描述"
                       v-if="scope.row.edit || orderStatus === 0"
                     ></el-input>
-                    <span v-else>{{ scope.row.productDescription }}</span>
+                    <span v-else style="overflow: hidden">{{ scope.row.productDescription }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column
@@ -341,7 +341,7 @@
                     <span v-else>{{ scope.row.productQuantity }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="salesFileList" label="销售附件" width="150">
+                <!-- <el-table-column prop="salesFileList" label="销售附件" width="150">
                   <template #default="scope">
                     <el-upload
                       v-if="scope.row.edit || orderStatus === 0"
@@ -353,17 +353,16 @@
                       :on-success="handleUploadSuccess"
                       :on-preview="handleFilePreview"
                     >
-                      <!-- <el-button type="primary" :disabled="!scope.row.edit">上传附件</el-button> -->
                       <el-icon><Plus /></el-icon>
                     </el-upload>
                     <div v-else v-for="item in scope.row.salesFileList" class="link-type text-overflow fs12">
                       {{ item.fileName }}
                     </div>
                   </template>
-                </el-table-column>
+                </el-table-column> -->
                 <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase', 'purchaseAdmin']">
                   <template #default="scope">
-                    <el-form-item :prop="'productList.' + scope.$index + '.supplierId'" :rules="valueRule">
+                    <el-form-item :prop="'productList.' + scope.$index + '.supplier'" :rules="valueRule">
                       <!-- <simple-select-local
                         v-if="!orderStatus || scope.row.edit"
                         v-model="scope.row.supplierId"
@@ -660,10 +659,7 @@ function getInfo() {
             supplierName: item.supplierName,
           },
         ]
-        ordersupplierList.value.push({
-          supplierId: item.supplierId,
-          supplierName: item.supplierName,
-        })
+        ordersupplierList.value.push(item.supplier)
         console.log(ordersupplierList.value)
         return item
       })
@@ -944,6 +940,9 @@ function handleCanclePay(row) {
     .cell {
       padding: 0 4px 12px;
       overflow: visible;
+      &.el-tooltip {
+        overflow: hidden;
+      }
     }
     .el-form-item--default .el-form-item__content > span {
       display: inline-block;

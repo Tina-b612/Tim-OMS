@@ -16,7 +16,7 @@
             placeholder="请输入采购负责人名称"
           />
         </el-form-item>
-        <el-form-item label="销售负责人" prop="inquirySalesUserId">
+        <!-- <el-form-item label="销售负责人" prop="inquirySalesUserId">
           <simple-select
             v-model="queryParams.brandResponsibleUserId"
             :remoteFunction="searchUser"
@@ -24,7 +24,7 @@
             searchValue="userId"
             placeholder="请输入销售负责人名称"
           />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="品牌" prop="brandId">
           <simple-select
             v-model="queryParams.brandId"
@@ -42,14 +42,14 @@
             @keyup.enter.native="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="询盘编号" prop="inquirySn">
+        <!-- <el-form-item label="询盘编号" prop="inquirySn">
           <el-input
             v-model="queryParams.inquirySn"
             placeholder="请输入询盘编号"
             clearable
             @keyup.enter.native="handleQuery"
           />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="订单状态更新时间" prop="orderStatusUpdateTime">
           <el-date-picker
             v-model="daterangeOrderStateUpdateTime"
@@ -103,10 +103,10 @@
         <el-table v-loading="loading" :data="orderList" @row-click="handleUpdate">
           <!-- <el-table-column type="index" label="序号" width="60" /> -->
           <el-table-column label="订单号" align="center" prop="orderSn" />
-          <el-table-column label="询盘单号" align="center" prop="inquirySn" />
+          <!-- <el-table-column label="询盘单号" align="center" prop="inquirySn" /> -->
           <el-table-column label="品牌" align="center" prop="brandName" />
           <el-table-column label="采购负责人" align="center" prop="purchaseUserName" />
-          <el-table-column label="销售负责人" align="center" prop="salesUserName" />
+          <!-- <el-table-column label="销售负责人" align="center" prop="salesUserName" /> -->
           <el-table-column label="未税总价" align="center" prop="orderTotalPriceNoTax">
             <template #default="scope">
               <span v-if="scope.row.orderTotalPriceNoTax">¥{{ scope.row.orderTotalPriceNoTax }}</span>
@@ -128,20 +128,11 @@
               <span>{{ parseTime(scope.row.orderStatusUpdateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+          <!-- <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template v-slot="scope">
-              <el-button
-                size="small"
-                type="primary"
-                link
-                icon="edit"
-                @click="handleUpdate(scope.row)"
-                v-hasPermi="['purchase:order:edit']"
-              >
-                修改
-              </el-button>
+              <el-button size="small" type="primary" link icon="edit" @click="handleUpdate(scope.row)">修改</el-button>
             </template>
-          </el-table-column>
+          </el-table-column> -->
         </el-table>
 
         <pagination

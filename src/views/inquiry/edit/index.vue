@@ -16,7 +16,7 @@
                   v-hasRole="['purchase', 'purchaseAdmin']"
                   type="primary"
                   size="small"
-                  @click="getInquiryToMe(scope.row)"
+                  @click="getInquiryToMe(form.inquiryId)"
                 >
                   认领询盘
                 </el-button>
@@ -310,7 +310,6 @@
                   <el-table-column
                     prop="productDescription"
                     label="产品描述"
-                    :show-overflow-tooltip="true"
                     :width="proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin']) && pageEdit ? 160 : 'auto'"
                   >
                     <template #default="scope">
@@ -626,7 +625,7 @@
 </template>
 
 <script setup name="Detail">
-import { getInquiry, updateInquiry, editInquiryStatus, quotedHistory } from '@/api/inquiry'
+import { getInquiry, updateInquiry, editInquiryStatus, quotedHistory, editInquiryPurchaseUser } from '@/api/inquiry'
 import { searchSupplier } from '@/api/brand'
 import { delProduct } from '@/api/product'
 import { delFile } from '@/api/system/info'
@@ -692,6 +691,13 @@ onBeforeMount(() => {
   }
 })
 
+const getInquiryToMe = () => {
+  editInquiryPurchaseUser({ inquiryId: inquiryId }).then((response) => {
+    proxy.$modal.msgSuccess('认领成功')
+    getInfo()
+  })
+}
+
 // 计算产品采购总价
 function getPurchaseTotalPrice(item) {
   item.productPurchaseTotalPrice = getFloat(item.productPurchasePrice * item.productQuantity, 4)
@@ -720,6 +726,8 @@ function getInfo() {
     inquiryStatus.value = data.inquiryStatus
     if (!data.purchaseUserName) {
       formDisabled.value = true
+    } else {
+      formDisabled.value = false
     }
 
     if (data.productList) {
@@ -993,6 +1001,9 @@ function handleUsePrice(price, product) {
     .cell {
       padding: 0 4px 8px;
       overflow: visible;
+      // &.el-tooltip {
+      //   overflow: hidden;
+      // }
 
       .el-table td.el-table__cell div {
         overflow: visible;
