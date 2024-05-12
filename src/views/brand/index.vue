@@ -108,6 +108,9 @@
           <el-tooltip content="关联供应商" placement="top">
             <el-button link type="primary" icon="Switch" @click="changeBrandResponsibleUser(scope.row, 2)"></el-button>
           </el-tooltip>
+          <el-tooltip content="删除" placement="top">
+            <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
@@ -151,7 +154,7 @@
 </template>
 
 <script setup>
-import { listBrand, updateBrand, listBrandUpdate, searchUser, searchSupplier } from '@/api/brand'
+import { listBrand, updateBrand, listBrandUpdate, searchUser, searchSupplier, delBrand } from '@/api/brand'
 
 import defaultLogo from '@/assets/images/default.png'
 import SimpleSelect from '@/components/SimpleSelect'
@@ -231,6 +234,15 @@ function changeSwitch(row) {
 function handleUpdate(row) {
   title.value = '编辑品牌'
   proxy.$refs.editBrandModelRef.show({ ...row })
+}
+// 删除品牌
+function handleDelete(row) {
+  proxy.$modal.confirm('删除后不可恢复，确认要删除此品牌吗？').then(() => {
+    delBrand(row.brandId).then((res) => {
+      proxy.$modal.msgSuccess('删除成功')
+      getList()
+    })
+  })
 }
 // 查看供应商详情
 function handleLook(row) {

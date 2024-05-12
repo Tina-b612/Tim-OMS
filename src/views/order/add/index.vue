@@ -250,6 +250,7 @@
 </template>
 
 <script setup name="Detail">
+import { searchBrand } from '@/api/brand'
 import { addOrder } from '@/api/order'
 import { nextTick, onBeforeMount, onMounted, reactive } from 'vue'
 import omsMessage from '@/views/componments/omsMessage'
@@ -319,6 +320,17 @@ function handleAddProduct() {
   form.value.productList.push(deepClone(defaulfItem))
 }
 
+function querySearchAsync(brandName, cb) {
+  if (brandName) {
+    // selectLoading.value = true
+    searchBrand({ brandName: brandName, brandEnable: 1 }).then((response) => {
+      // selectLoading.value = false
+      // brandSearchList.value = response
+      cb(response)
+    })
+  }
+}
+
 //删除型号
 function handleDeleteOrderItem(index) {
   proxy.$modal
@@ -368,7 +380,7 @@ function handleUploadSuccess(res) {
 }
 // 预览文件
 function handleFilePreview(uploadFile) {
-  window.open(uploadFile.url)
+  window.open(uploadFile.response.url)
 }
 // 删除文件
 function handleFileRemove(uploadFile) {
@@ -396,14 +408,6 @@ function uniqueFunc(arr, uniId) {
 
 // 申请付款
 function openPayInfo() {
-  // let supplierList = []
-  // for (let i = 0; i < form.value.productList.length; i++) {
-  //   const item = form.value.productList[i];
-  //   supplierList.push(item.supplier)
-  // }
-  // form.value.supplierList = uniqueFunc(supplierList, 'supplierId')
-  // proxy.$refs.payInfoDialogRef.show(form.value.piSn)
-
   proxy.$refs['orderRef'].validate((valid) => {
     if (valid) {
       let list = []
@@ -411,7 +415,9 @@ function openPayInfo() {
         const item = form.value.productList[i]
         list.push(item.supplier)
       }
+      console.log(form.value.productList)
       form.value.supplierList = uniqueFunc(list, 'supplierId')
+      console.log(form.value.supplierList)
       proxy.$refs.payInfoDialogRef.show(form.value.piSn)
     }
   })

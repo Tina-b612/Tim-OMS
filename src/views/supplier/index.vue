@@ -105,7 +105,7 @@
 </template>
 
 <script setup>
-import { listSupplier } from '@/api/supplier'
+import { listSupplier, updateSupplier } from '@/api/supplier'
 import { searchUser, searchSupplier, searchBrand } from '@/api/brand'
 import SimpleSelect from '@/components/SimpleSelect'
 import editModel from './editModel'
@@ -157,6 +157,10 @@ function getList() {
 function cancel() {
   open.value = false
   reset()
+}
+
+function changeSwitch(item) {
+  updateSupplier(item).then((response) => {})
 }
 
 // 表单重置

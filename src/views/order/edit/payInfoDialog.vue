@@ -207,7 +207,7 @@ function handleUploadSuccess(res) {
 }
 // 预览文件
 function handleFilePreview(uploadFile) {
-  window.open(uploadFile.url)
+  window.open(uploadFile.response.url)
 }
 defineExpose({
   show,

@@ -87,11 +87,7 @@ watch(
       // 然后将数组转为对象数组
       fileList.value = list.map((item) => {
         if (typeof item === 'string') {
-          if (item.indexOf(baseUrl) === -1) {
-            item = { name: baseUrl + item, url: baseUrl + item }
-          } else {
-            item = { name: item, url: item }
-          }
+          item = { name: item, url: item }
         }
         return item
       })
