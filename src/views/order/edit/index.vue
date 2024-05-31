@@ -232,8 +232,8 @@
                         <el-icon><Plus /></el-icon>
                       </el-upload>
                       <div v-else class="link-type text-overflow fs12">
-                        <a :href="scope.row.paymentContractFileList[0].url" target="_blank">
-                          {{ scope.row.paymentContractFileList[0].fileName }}
+                        <a :href="scope.row.paymentProveFileList[0].url" target="_blank">
+                          {{ scope.row.paymentProveFileList[0].fileName }}
                         </a>
                         <!-- <el-button link type="primary">
                           
@@ -298,7 +298,7 @@
                   prop="productName"
                   label="型号"
                   fixed="left"
-                  :width="[0].includes(orderStatus) || pageEdit ? 160 : 'auto'"
+                  :width="[0].includes(orderStatus) || pageEdit ? 160 : '270'"
                 >
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.productName'" :rules="valueRule">
@@ -329,7 +329,7 @@
                 <el-table-column
                   prop="productQuantity"
                   label="数量"
-                  :width="[0].includes(orderStatus) || pageEdit ? 160 : 'auto'"
+                  :width="[0].includes(orderStatus) || pageEdit ? 160 : '60'"
                 >
                   <template #default="scope">
                     <el-input-number
@@ -384,7 +384,7 @@
                   prop="productPurchasePrice"
                   label="未税单价"
                   v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
-                  width="100"
+                  width="70"
                 >
                   <template #default="scope">
                     <el-form-item :prop="'productList.' + scope.$index + '.productPurchasePrice'" :rules="valueRule">
@@ -401,7 +401,7 @@
                   prop="productReferencePrice"
                   label="建议售价"
                   v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
-                  width="100"
+                  width="70"
                 >
                   <template #default="scope">
                     <el-input
@@ -425,7 +425,7 @@
                   prop="productDeliveryTime"
                   label="预计货期"
                   v-if="orderStatus >= 3 || proxy.$auth.hasRoleOr(['purchase', 'purchaseAdmin'])"
-                  width="100"
+                  width="70"
                 >
                   <template #default="scope">
                     <el-input v-if="!orderStatus || scope.row.edit" v-model="scope.row.productDeliveryTime"></el-input>
@@ -798,7 +798,8 @@ function handleUploadSuccess(res) {
 }
 // 预览文件
 function handleFilePreview(uploadFile) {
-  window.open(uploadFile.url)
+  // console.log(uploadFile)
+  window.open(uploadFile.response.url)
 }
 // 删除文件
 function handleFileRemove(uploadFile) {
@@ -894,11 +895,18 @@ function handleCanclePay(row) {
   }
   .inquiryInfo {
     .brandInfo {
-      span {
-        display: inline-block;
-        line-height: 50px;
-        vertical-align: middle;
+      .el-avatar {
+        background: transparent;
       }
+      .el-avatar > img {
+        height: auto;
+        width: 100%;
+      }
+      // span {
+      //   display: inline-block;
+      //   line-height: 50px;
+      //   vertical-align: middle;
+      // }
     }
     .inquiryDescription {
       width: 500px;

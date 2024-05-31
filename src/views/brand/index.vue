@@ -108,9 +108,9 @@
           <el-tooltip content="关联供应商" placement="top">
             <el-button link type="primary" icon="Switch" @click="changeBrandResponsibleUser(scope.row, 2)"></el-button>
           </el-tooltip>
-          <el-tooltip content="删除" placement="top">
+          <!-- <el-tooltip content="删除" placement="top">
             <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"></el-button>
-          </el-tooltip>
+          </el-tooltip> -->
         </template>
       </el-table-column>
     </el-table>

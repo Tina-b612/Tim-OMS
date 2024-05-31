@@ -944,10 +944,17 @@ function handleUsePrice(price, product) {
 
   .inquiryInfo {
     .brandInfo {
-      span {
-        display: inline-block;
-        line-height: 50px;
-        vertical-align: middle;
+      // span {
+      //   display: inline-block;
+      //   line-height: 50px;
+      //   vertical-align: middle;
+      // }
+      .el-avatar {
+        background: transparent;
+      }
+      .el-avatar > img {
+        height: auto;
+        width: 100%;
       }
     }
 
