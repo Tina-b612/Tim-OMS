@@ -26,6 +26,15 @@ export function addOrder(data) {
   })
 }
 
+// 保存草稿
+export function addDraft(data) {
+  return request({
+    url: '/order/addDraft',
+    method: 'post',
+    data: data,
+  })
+}
+
 // 修改询盘
 export function updateOrder(data) {
   return request({

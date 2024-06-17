@@ -26,6 +26,16 @@ export function addInquiry(data) {
   })
 }
 
+// 保存草稿
+
+export function addDraft(data) {
+  return request({
+    url: 'inquiry/addDraft',
+    method: 'post',
+    data: data,
+  })
+}
+
 // 修改询盘
 export function updateInquiry(data) {
   return request({

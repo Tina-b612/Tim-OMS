@@ -8,13 +8,8 @@
           <el-switch v-model="queryParams.ifSelf" @change="handleQuery" />
         </el-form-item>
         <el-form-item label="采购负责人" prop="inquiryPurchaseUserId">
-          <simple-select
-            v-model="queryParams.brandResponsibleUserId"
-            :remoteFunction="searchUser"
-            searchKey="nickName"
-            searchValue="userId"
-            placeholder="请输入采购负责人名称"
-          />
+          <simple-select v-model="queryParams.brandResponsibleUserId" :remoteFunction="searchUser" searchKey="nickName"
+            searchValue="userId" placeholder="请输入采购负责人名称" />
         </el-form-item>
         <!-- <el-form-item label="销售负责人" prop="inquirySalesUserId">
           <simple-select
@@ -26,21 +21,11 @@
           />
         </el-form-item> -->
         <el-form-item label="品牌" prop="brandId">
-          <simple-select
-            v-model="queryParams.brandId"
-            :remoteFunction="searchBrand"
-            searchKey="brandName"
-            searchValue="brandId"
-            placeholder="请输入品牌名称"
-          />
+          <simple-select v-model="queryParams.brandId" :remoteFunction="searchBrand" searchKey="brandName"
+            searchValue="brandId" placeholder="请输入品牌名称" />
         </el-form-item>
         <el-form-item label="订单号" prop="orderSn">
-          <el-input
-            v-model="queryParams.orderSn"
-            placeholder="请输入订单号"
-            clearable
-            @keyup.enter.native="handleQuery"
-          />
+          <el-input v-model="queryParams.orderSn" placeholder="请输入订单号" clearable @keyup.enter.native="handleQuery" />
         </el-form-item>
         <!-- <el-form-item label="询盘编号" prop="inquirySn">
           <el-input
@@ -51,26 +36,12 @@
           />
         </el-form-item> -->
         <el-form-item label="订单状态更新时间" prop="orderStatusUpdateTime">
-          <el-date-picker
-            v-model="daterangeOrderStateUpdateTime"
-            style="width: 240px"
-            value-format="YYYY-MM-DD"
-            type="daterange"
-            range-separator="-"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-          ></el-date-picker>
+          <el-date-picker v-model="daterangeOrderStateUpdateTime" style="width: 240px" value-format="YYYY-MM-DD"
+            type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"></el-date-picker>
         </el-form-item>
         <el-form-item label="订单创建时间" prop="orderCreateTime">
-          <el-date-picker
-            v-model="createTime"
-            style="width: 240px"
-            value-format="YYYY-MM-DD"
-            type="daterange"
-            range-separator="-"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-          ></el-date-picker>
+          <el-date-picker v-model="createTime" style="width: 240px" value-format="YYYY-MM-DD" type="daterange"
+            range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"></el-date-picker>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
@@ -91,13 +62,8 @@
         <!-- 列表分类 -->
         <el-tabs v-model="activeName" type="card" class="demo-tabs" @tab-click="handleTabClick">
           <el-tab-pane label="全部" name=""></el-tab-pane>
-          <el-tab-pane
-            v-for="item in stateNumber"
-            :label="
-              item.orderStatusCount ? order_status_map[item.orderStatus].label + `（${item.orderStatusCount}）` : ''
-            "
-            :name="order_status_map[item.orderStatus].value"
-          ></el-tab-pane>
+          <el-tab-pane v-for="item in stateNumber" :label="item.orderStatusCount ? order_status_map[item.orderStatus].label + `（${item.orderStatusCount}）` : ''
+            " :name="order_status_map[item.orderStatus].value"></el-tab-pane>
         </el-tabs>
         <!-- 列表 -->
         <el-table v-loading="loading" :data="orderList" @row-click="handleUpdate">
@@ -135,13 +101,8 @@
           </el-table-column> -->
         </el-table>
 
-        <pagination
-          v-show="total > 0"
-          :total="total"
-          v-model:page="queryParams.pageNum"
-          v-model:limit="queryParams.pageSize"
-          @pagination="getList"
-        />
+        <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize" @pagination="getList" />
       </div>
     </div>
 
@@ -297,7 +258,7 @@ function handleUpdate(row) {
   if (row.orderStatus >= 1) {
     proxy.$router.push({ path: 'order/edit', query: { id: row.orderId } })
   } else {
-    proxy.$router.push({ path: 'order/edit', query: { id: row.orderId } })
+    proxy.$router.push({ path: 'order/add', query: { id: row.orderId } })
   }
 }
 watch(
@@ -319,16 +280,19 @@ watch(
   display: flex;
   height: 100%;
   background: #eee;
+
   .inquiry-order {
     position: relative;
     padding: 20px;
     background: #fff;
     margin-right: 10px;
     overflow: auto;
+
     .pagination-container .el-pagination {
       right: 40px;
     }
   }
+
   .message-containar {
     width: 25%;
     max-width: 350px;

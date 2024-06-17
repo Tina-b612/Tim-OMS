@@ -21,14 +21,9 @@
           </div>
           <div class="mt20">
             <el-form-item lab>
-              <el-table
-                :data="form.productList"
-                border
-                class="productList"
-                :header-cell-style="{ 'text-align': 'center' }"
-                :cell-style="{ 'text-align': 'center' }"
-                style="width: 100%"
-              >
+              <el-table :data="form.productList" border class="productList"
+                :header-cell-style="{ 'text-align': 'center' }" :cell-style="{ 'text-align': 'center' }"
+                style="width: 100%">
                 <!-- <el-table-column type="index" width="50" label="序号" /> -->
                 <el-table-column prop="productName" label="型号*">
                   <template #default="scope">
@@ -44,25 +39,15 @@
                 </el-table-column>
                 <el-table-column prop="productQuantity" label="数量">
                   <template #default="scope">
-                    <el-input-number
-                      :controls="false"
-                      :precision="0"
-                      v-model="scope.row.productQuantity"
-                      :min="1"
-                    ></el-input-number>
+                    <el-input-number :controls="false" :precision="0" v-model="scope.row.productQuantity"
+                      :min="1"></el-input-number>
                   </template>
                 </el-table-column>
                 <el-table-column prop="salesFileList" label="销售附件">
                   <template #default="scope">
-                    <el-upload
-                      v-model:file-list="scope.row.salesFileList"
-                      :action="base + '/system/info/add'"
-                      :limit="3"
-                      :headers="headers"
-                      accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
-                      :on-success="handleUploadSuccess"
-                      :on-preview="handleFilePreview"
-                    >
+                    <el-upload v-model:file-list="scope.row.salesFileList" :action="base + '/system/info/add'" :limit="3"
+                      :headers="headers" accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
+                      :on-success="handleUploadSuccess" :on-preview="handleFilePreview">
                       <el-button type="primary">上传附件</el-button>
                     </el-upload>
                   </template>
@@ -70,12 +55,8 @@
                 <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="80">
                   <template #default="scope">
                     <el-tooltip content="删除" placement="top" v-if="scope.row.roleId !== 1">
-                      <el-button
-                        link
-                        type="primary"
-                        icon="Delete"
-                        @click="handleDeleteOrderItem(scope.row, scope.$index)"
-                      ></el-button>
+                      <el-button link type="primary" icon="Delete"
+                        @click="handleDeleteOrderItem(scope.row, scope.$index)"></el-button>
                     </el-tooltip>
                   </template>
                 </el-table-column>
@@ -95,7 +76,7 @@
 </template>
 
 <script setup name="Detail">
-import { addInquiry } from '@/api/inquiry'
+import { addInquiry, addDraft, getInquiry } from '@/api/inquiry'
 import { onBeforeMount, reactive, watch } from 'vue'
 import omsMessage from '@/views/componments/omsMessage'
 import brandSelect from '@/views/componments/brandSelect'
@@ -103,9 +84,11 @@ import { deepClone } from '@/utils/index'
 
 import { getToken } from '@/utils/auth'
 const { proxy } = getCurrentInstance()
-const orderState = ref(0)
+const inquiryStatus = ref(0)
+const inquiryId = proxy.$route.query.id
 const base = import.meta.env.VITE_APP_BASE_API
 const headers = ref({ Authorization: 'Bearer ' + getToken() })
+const originData = ref({})
 
 // 产品默认对象
 const defaulfItem = {
@@ -132,6 +115,40 @@ const data = reactive({
 })
 const { form, rules, valueRule } = toRefs(data)
 
+onBeforeMount(() => {
+  if (inquiryId) {
+    getInfo()
+  }
+})
+
+
+// 获取当前询盘信息
+function getInfo() {
+  getInquiry(inquiryId).then((res) => {
+    let data = res.data
+    inquiryStatus.value = data.inquiryStatus
+
+    if (data.productList) {
+      data.productList = data.productList.map((item) => {
+        item.edit = false
+        item.btnEdit = true
+        item.defaultSupplierList = [
+          {
+            supplierId: item.supplierId,
+            supplierName: item.supplierName,
+          },
+        ]
+        return item
+      })
+    }
+
+    nextTick(() => {
+      originData.value = data
+      form.value = deepClone(originData.value)
+    })
+  })
+}
+
 function handleAddProduct() {
   form.value.productList.push(deepClone(defaulfItem))
 }
@@ -150,20 +167,25 @@ function handleDeleteOrderItem(item, index) {
 
 // 提交订单
 function submitForm(orderState) {
-  proxy.$refs['orderRef'].validate((valid) => {
-    if (valid) {
-      form.value.inquiryStatus = orderState
-      addInquiry(form.value).then((response) => {
-        if (orderState === 1) {
-          proxy.$modal.msgSuccess('保存成功')
-        } else {
-          proxy.$modal.msgSuccess('新增成功')
-        }
 
-        proxy.$tab.closeOpenPage({ path: '/inquiry' })
-      })
-    }
-  })
+  form.value.inquiryStatus = orderState
+  if (orderState === 0) {
+    addDraft(form.value).then((response) => {
+      proxy.$modal.msgSuccess('保存草稿成功')
+      proxy.$tab.closeOpenPage({ path: '/inquiry' })
+    })
+  } else {
+    proxy.$refs['orderRef'].validate((valid) => {
+      if (valid) {
+        addInquiry(form.value).then((response) => {
+          proxy.$modal.msgSuccess('新增成功')
+          proxy.$tab.closeOpenPage({ path: '/inquiry' })
+        })
+      }
+    })
+  }
+
+
 }
 
 // 上传成功
