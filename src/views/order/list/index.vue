@@ -73,7 +73,7 @@
           <el-table-column label="品牌" align="center" prop="brandName" />
           <el-table-column label="采购负责人" align="center" prop="purchaseUserName" />
           <!-- <el-table-column label="销售负责人" align="center" prop="salesUserName" /> -->
-          <el-table-column label="未税总价" align="center" prop="orderTotalPriceNoTax">
+          <el-table-column label="总价" align="center" prop="orderTotalPrice">
             <template #default="scope">
               <span v-if="scope.row.orderTotalPriceNoTax">¥{{ scope.row.orderTotalPriceNoTax }}</span>
             </template>

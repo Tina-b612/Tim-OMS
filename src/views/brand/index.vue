@@ -2,38 +2,18 @@
   <div class="app-container brand-list">
     <el-form :model="queryParams" ref="queryFormRef" :inline="true" v-show="showSearch">
       <el-form-item label="品牌名称" prop="brandName">
-        <el-input
-          v-model="queryParams.brandName"
-          placeholder="请输入品牌名称"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+        <el-input v-model="queryParams.brandName" placeholder="请输入品牌名称" clearable @keyup.enter.native="handleQuery" />
       </el-form-item>
       <el-form-item label="国家" prop="brandCountry">
-        <el-input
-          v-model="queryParams.brandCountry"
-          placeholder="请输入国家"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+        <el-input v-model="queryParams.brandCountry" placeholder="请输入国家" clearable @keyup.enter.native="handleQuery" />
       </el-form-item>
       <el-form-item label="品牌负责人" prop="brandResponsibleUserId">
-        <simple-select
-          v-model="queryParams.brandResponsibleUserId"
-          :remoteFunction="searchUser"
-          searchKey="nickName"
-          searchValue="userId"
-          placeholder="请输入品牌负责人名称"
-        />
+        <simple-select v-model="queryParams.brandResponsibleUserId" :remoteFunction="searchUser" searchKey="nickName"
+          searchValue="userId" placeholder="请输入品牌负责人名称" />
       </el-form-item>
       <el-form-item label="供应商" prop="supplierId">
-        <simple-select
-          v-model="queryParams.supplierId"
-          :remoteFunction="searchSupplier"
-          searchKey="supplierName"
-          searchValue="supplierId"
-          placeholder="请输入供应商名称"
-        />
+        <simple-select v-model="queryParams.supplierId" :remoteFunction="searchSupplier" searchKey="supplierName"
+          searchValue="supplierId" placeholder="线上输入ID，线下输入公司名称" />
       </el-form-item>
       <el-form-item label="是否启用" prop="brandEnable">
         <el-select v-model="queryParams.brandEnable" placeholder="请选择是否启用">
@@ -88,13 +68,8 @@
       </el-table-column>
       <el-table-column label="是否启用" width="90">
         <template #default="scope">
-          <el-switch
-            size="small"
-            v-model="scope.row.brandEnable"
-            :active-value="1"
-            :inactive-value="0"
-            @change="changeSwitch(scope.row)"
-          />
+          <el-switch size="small" v-model="scope.row.brandEnable" :active-value="1" :inactive-value="0"
+            @change="changeSwitch(scope.row)" />
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="140" class-name="small-padding fixed-width">
@@ -115,13 +90,8 @@
       </el-table-column>
     </el-table>
 
-    <pagination
-      v-show="total > 0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
-    />
+    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+      @pagination="getList" />
 
     <!-- 编辑品牌 -->
     <editBrandModel :title="title" ref="editBrandModelRef" @submit="getList"></editBrandModel>
@@ -136,13 +106,8 @@
     <el-dialog title="批量分配负责人" v-model="responsibleOpen" width="500px" append-to-body>
       <el-form ref="responsibleFormRef" :model="responsibleForm" label-width="90">
         <el-form-item label="品牌负责人" prop="responsibleUserName">
-          <simple-select
-            v-model="responsibleForm.responsibleUserId"
-            :remoteFunction="searchUser"
-            searchKey="nickName"
-            searchValue="userId"
-            placeholder="请输入品牌负责人名称"
-          />
+          <simple-select v-model="responsibleForm.responsibleUserId" :remoteFunction="searchUser" searchKey="nickName"
+            searchValue="userId" placeholder="请输入品牌负责人名称" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer flex-center">

@@ -4,13 +4,8 @@
       <el-form-item label="用途（PI）" prop="piSn">
         <el-input v-model="form.piSn" placeholder="请输入PI号" style="width: 300px" />
       </el-form-item>
-      <el-table
-        :data="form.paymentList"
-        border
-        :header-cell-style="{ 'text-align': 'center' }"
-        :cell-style="{ 'text-align': 'center' }"
-        style="width: 100%"
-      >
+      <el-table :data="form.paymentList" border :header-cell-style="{ 'text-align': 'center' }"
+        :cell-style="{ 'text-align': 'center' }" style="width: 100%">
         <el-table-column type="index" width="60" label="序号" fixed="left" />
         <el-table-column prop="supplierId" label="供应商" width="150" v-hasRole="['purchase', 'purchaseAdmin']">
           <template #header>
@@ -19,23 +14,10 @@
           </template>
           <template #default="scope">
             <el-form-item :prop="'paymentList.' + scope.$index + '.supplier'" :rules="valueRule">
-              <el-select
-                v-model="scope.row.supplier"
-                filterable
-                default-first-option
-                clearable
-                remote
-                placeholder="请输入供应商名称"
-                remote-show-suffix
-                @change="handleChangeSelect(scope.$index)"
-              >
-                <el-option
-                  style="width: 280px"
-                  v-for="item in ordersupplierList"
-                  :label="item.supplierName"
-                  :key="item.supplierId"
-                  :value="item"
-                >
+              <el-select v-model="scope.row.supplier" filterable default-first-option clearable remote
+                placeholder="线上输入ID，线下输入公司名称" remote-show-suffix @change="handleChangeSelect(scope.$index)">
+                <el-option style="width: 280px" v-for="item in ordersupplierList" :label="item.supplierName"
+                  :key="item.supplierId" :value="item">
                   <span style="width: 100px">{{ item.supplierName }}</span>
                 </el-option>
               </el-select>
@@ -103,15 +85,9 @@
           </template>
           <template #default="scope">
             <el-form-item :prop="'paymentList.' + scope.$index + '.paymentContractFileList'" :rules="valueRule">
-              <el-upload
-                v-model:file-list="scope.row.paymentContractFileList"
-                :action="base + '/system/info/add'"
-                :limit="1"
-                :headers="headers"
-                accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
-                :on-success="handleUploadSuccess"
-                :on-preview="handleFilePreview"
-              >
+              <el-upload v-model:file-list="scope.row.paymentContractFileList" :action="base + '/system/info/add'"
+                :limit="1" :headers="headers" accept=".jpg, .jpeg, .png, .doc, .docx, .xls, .xlsx, .pdf"
+                :on-success="handleUploadSuccess" :on-preview="handleFilePreview">
                 <!-- <el-button type="primary" :disabled="!scope.row.edit">上传附件</el-button> -->
                 <el-icon>
                   <Plus />

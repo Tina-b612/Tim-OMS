@@ -2,38 +2,20 @@
   <div class="app-container supplier">
     <el-form :model="queryParams" ref="queryFormRef" :inline="true" v-show="showSearch">
       <el-form-item label="供应商" prop="supplierId">
-        <simple-select
-          v-model="queryParams.supplierId"
-          :remoteFunction="searchSupplier"
-          searchKey="supplierName"
-          searchValue="supplierId"
-          placeholder="请输入供应商名称"
-        />
+        <simple-select v-model="queryParams.supplierId" :remoteFunction="searchSupplier" searchKey="supplierName"
+          searchValue="supplierId" placeholder="线上输入ID，线下输入公司名称" />
       </el-form-item>
       <el-form-item label="纳税人识别号" prop="supplierTaxId">
-        <el-input
-          v-model="queryParams.supplierTaxId"
-          placeholder="请输入纳税人识别号"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+        <el-input v-model="queryParams.supplierTaxId" placeholder="请输入纳税人识别号" clearable
+          @keyup.enter.native="handleQuery" />
       </el-form-item>
       <el-form-item label="联系电话" prop="supplierContactPhone">
-        <el-input
-          v-model="queryParams.supplierContactPhone"
-          placeholder="请输入联系电话"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+        <el-input v-model="queryParams.supplierContactPhone" placeholder="请输入联系电话" clearable
+          @keyup.enter.native="handleQuery" />
       </el-form-item>
       <el-form-item label="品牌" prop="brandId">
-        <simple-select
-          v-model="queryParams.brandId"
-          :remoteFunction="searchBrand"
-          searchKey="brandName"
-          searchValue="brandId"
-          placeholder="请输入品牌名称"
-        />
+        <simple-select v-model="queryParams.brandId" :remoteFunction="searchBrand" searchKey="brandName"
+          searchValue="brandId" placeholder="请输入品牌名称" />
       </el-form-item>
       <el-form-item label="是否启用" prop="supplierEnable">
         <el-select v-model="queryParams.supplierEnable" placeholder="请选择是否启用">
@@ -68,13 +50,8 @@
       </el-table-column>
       <el-table-column label="是否启用" width="90">
         <template #default="scope">
-          <el-switch
-            size="small"
-            v-model="scope.row.supplierEnable"
-            :active-value="1"
-            :inactive-value="0"
-            @change="changeSwitch(scope.row)"
-          />
+          <el-switch size="small" v-model="scope.row.supplierEnable" :active-value="1" :inactive-value="0"
+            @change="changeSwitch(scope.row)" />
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -89,13 +66,8 @@
       </el-table-column>
     </el-table>
 
-    <pagination
-      v-show="total > 0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
-    />
+    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+      @pagination="getList" />
 
     <!-- 添加或修改供应商管理对话框 -->
     <editModel :title="title" ref="editModelRef" @submit="getList"></editModel>
@@ -160,7 +132,7 @@ function cancel() {
 }
 
 function changeSwitch(item) {
-  updateSupplier(item).then((response) => {})
+  updateSupplier(item).then((response) => { })
 }
 
 // 表单重置
@@ -190,7 +162,7 @@ function handleAdd() {
 }
 /** 修改按钮操作 */
 function handleUpdate(row) {
-  title.value = '新增供应商'
+  title.value = '编辑供应商'
   proxy.$refs.editModelRef.show({ ...row })
 }
 // 关联品牌

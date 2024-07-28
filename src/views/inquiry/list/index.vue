@@ -50,8 +50,8 @@
         <el-tabs v-model="activeName" type="card" class="demo-tabs" @tab-click="handleTabClick">
           <el-tab-pane label="全部" name=""></el-tab-pane>
           <el-tab-pane v-for="item in stateNumber" :label="item.inquiryStatusCount
-              ? inquiry_status_map[item.inquiryStatus].label + `（${item.inquiryStatusCount}）`
-              : ''
+            ? inquiry_status_map[item.inquiryStatus].label + `（${item.inquiryStatusCount}）`
+            : ''
             " :name="inquiry_status_map[item.inquiryStatus].value"></el-tab-pane>
         </el-tabs>
         <!-- 列表 -->
@@ -72,7 +72,7 @@
           </el-table-column>
 
           <el-table-column label="销售负责人" align="center" prop="salesUserName" />
-          <el-table-column label="未税总价" align="center" prop="inquiryTotalPriceNoTax" />
+          <el-table-column label="总价" align="center" prop="inquiryTotalPrice" />
           <el-table-column label="订单状态" align="center" prop="inquiryStatus">
             <template #default="scope">
               <dict-tag :options="inquiry_status" :value="scope.row.inquiryStatus" />

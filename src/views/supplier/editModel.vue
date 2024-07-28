@@ -2,7 +2,7 @@
   <el-dialog :title="title" v-model="open" width="500px" append-to-body>
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100">
       <el-form-item label="供应商名称" prop="supplierName">
-        <el-input v-model="form.supplierName" placeholder="请输入供应商名称" />
+        <el-input v-model="form.supplierName" placeholder="线上输入ID，线下输入公司名称" />
       </el-form-item>
       <el-form-item label="联系人" prop="supplierContactName">
         <el-input v-model="form.supplierContactName" placeholder="请输入联系人" />
@@ -29,10 +29,10 @@
         <el-input v-model="form.supplierTaxId" placeholder="请输入纳税人识别号" />
       </el-form-item>
       <el-form-item label="收款账号" prop="supplierPayeeAccount">
-        <el-input v-model="form.supplierPayeeAccount" placeholder="请输入收款账号" />
+        <el-input v-model="form.supplierPayeeAccount" placeholder="对公或对私时必填" />
       </el-form-item>
       <el-form-item label="开户行" prop="supplierBankName">
-        <el-input v-model="form.supplierBankName" placeholder="请输入开户行" />
+        <el-input v-model="form.supplierBankName" placeholder="对公或对私时必填，填入开户行+分行名称" />
       </el-form-item>
       <el-form-item label="备注" prop="supplierDescription">
         <el-input v-model="form.supplierDescription" placeholder="请输入备注" />
@@ -67,6 +67,7 @@ const form = ref({
 // 表单校验
 const rules = {
   supplierName: [{ required: true, message: '供应商名称不能为空', trigger: 'blur' }],
+  supplierContactPhone: [{ required: true, message: '联系电话不能为空', trigger: 'blur' }]
 }
 
 function show(row) {
